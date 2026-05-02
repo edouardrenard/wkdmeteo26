@@ -1,160 +1,163 @@
 'use client'
 
-import { useState } from 'react'
-import { SearchParams } from '@/lib/types'
+import { Destination, SearchParams } from '@/lib/types'
 
-const VILLES = [
-  { label: 'Paris', iata: 'PAR' },
-  { label: 'Lyon', iata: 'LYS' },
-  { label: 'Marseille', iata: 'MRS' },
-  { label: 'Bordeaux', iata: 'BOD' },
-  { label: 'Lille', iata: 'LIL' },
-]
-
-function getOptions() {
-  const options = []
-  const today = new Date()
-  const day = today.getDay()
-
-  // Prochain vendredi
-  let nextFri = new Date(today)
-  nextFri.setDate(today.getDate() + ((5 - day + 7) % 7 || 7))
-
-  // Prochain samedi
-  let nextSat = new Date(today)
-  nextSat.setDate(today.getDate() + ((6 - day + 7) % 7 || 7))
-
-  const fmt = (d: Date) => d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-
-  for (let i = 0; i < 4; i++) {
-    const fri = new Date(nextFri); fri.setDate(nextFri.getDate() + i * 7)
-    const sat = new Date(nextSat); sat.setDate(nextSat.getDate() + i * 7)
-    const sun = new Date(sat);     sun.setDate(sat.getDate() + 1)
-
-    // Option départ samedi (2 nuits)
-    options.push({
-      label: `Sam ${fmt(sat)} – Dim ${fmt(sun)} (2 nuits)`,
-      departDate: sat.toISOString().split('T')[0],
-      retourDate: sun.toISOString().split('T')[0],
-      nbNuits: 1,
-      type: 'weekend',
-    })
-
-    // Option départ vendredi (3 nuits)
-    options.push({
-      label: `Ven ${fmt(fri)} – Dim ${fmt(sun)} (3 nuits)`,
-      departDate: fri.toISOString().split('T')[0],
-      retourDate: sun.toISOString().split('T')[0],
-      nbNuits: 2,
-      type: 'long',
-    })
-  }
-
-  return options.sort((a, b) => a.departDate.localeCompare(b.departDate))
+function ScoreBadge({ score }: { score: number }) {
+  const color = score >= 75 ? 'text-emerald-400 bg-emerald-400/10' : score >= 55 ? 'text-sky-400 bg-sky-400/10' : 'text-amber-400 bg-amber-400/10'
+  return (
+    <div className={`w-14 h-14 rounded-full flex flex-col items-center justify-center ${color} flex-shrink-0`}>
+      <span className="text-lg font-bold leading-none">{score}</span>
+      <span className="text-xs opacity-70">score</span>
+    </div>
+  )
 }
 
-export default function SearchForm({
-  onSearch,
-  loading,
-}: {
-  onSearch: (p: SearchParams) => void
-  loading: boolean
-}) {
-  const [depart, setDepart] = useState('Paris')
-  const [optionIndex, setOptionIndex] = useState(0)
-  const [budget, setBudget] = useState(400)
-  const [meteoPreference, setMeteoPreference] = useState<'soleil' | 'doux' | 'peu_pluie'>('soleil')
-  const options = getOptions()
+function MiniBar({ value, color }: { value: number, color: string }) {
+  return (
+    <div className="w-full h-1 bg-slate-700 rounded-full overflow-hidden">
+      <div className={`h-full rounded-full ${color}`} style={{ width: `${value}%` }} />
+    </div>
+  )
+}
 
-  const handleSubmit = () => {
-    const ville = VILLES.find(v => v.label === depart)!
-    const opt = options[optionIndex]
-    onSearch({
-      depart,
-      departIata: ville.iata,
-      budget,
-      meteoPreference,
-      departDate: opt.departDate,
-      retourDate: opt.retourDate,
-      nbNuits: opt.nbNuits,
-      weekendIndex: optionIndex,
-    })
-  }
-
-  const selectedOpt = options[optionIndex]
+function DestCard({ dest, index }: { dest: Destination, index: number }) {
+  const meteoIcon = dest.meteo
+    ? dest.meteo.soleil >= 6 ? '☀️' : dest.meteo.soleil >= 3 ? '⛅' : '☁️'
+    : '?'
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-8">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
-        <div>
-          <label className="block text-xs text-slate-400 mb-2">Ville de départ</label>
-          <select
-            value={depart}
-            onChange={e => setDepart(e.target.value)}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-500"
-          >
-            {VILLES.map(v => <option key={v.label}>{v.label}</option>)}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-xs text-slate-400 mb-2">Dates</label>
-          <select
-            value={optionIndex}
-            onChange={e => setOptionIndex(Number(e.target.value))}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-500"
-          >
-            {options.map((o, i) => (
-              <option key={i} value={i}>{o.label}</option>
-            ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-xs text-slate-400 mb-2">Météo souhaitée</label>
-          <select
-            value={meteoPreference}
-            onChange={e => setMeteoPreference(e.target.value as 'soleil' | 'doux' | 'peu_pluie')}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-500"
-          >
-            <option value="soleil">☀️ Soleil / chaud</option>
-            <option value="doux">⛅ Doux / nuageux OK</option>
-            <option value="peu_pluie">🌂 Peu de pluie</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-xs text-slate-400 mb-2">
-            Budget total : <span className="text-white font-medium">{budget} €</span>
-          </label>
-          <input
-            type="range" min={100} max={800} step={10} value={budget}
-            onChange={e => setBudget(Number(e.target.value))}
-            className="w-full accent-sky-500 mt-1"
-          />
-          <div className="flex justify-between text-xs text-slate-500 mt-1">
-            <span>100€</span><span>800€</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Résumé du séjour sélectionné */}
-      <div className="bg-slate-800 rounded-xl px-4 py-3 mb-4 flex items-center gap-3 text-sm">
-        <span>{selectedOpt.type === 'long' ? '🗓️' : '📅'}</span>
-        <span className="text-slate-300">
-          {selectedOpt.nbNuits === 1 ? 'Weekend 2 jours' : 'Long weekend 3 jours'} ·{' '}
-          <span className="text-white font-medium">{selectedOpt.nbNuits + 1} jours / {selectedOpt.nbNuits} nuit{selectedOpt.nbNuits > 1 ? 's' : ''}</span> ·{' '}
-          Budget hôtel estimé : <span className="text-sky-400 font-medium">~{selectedOpt.nbNuits} × prix/nuit</span>
+    <div className={`bg-slate-900 rounded-2xl p-5 border ${index === 0 ? 'border-sky-500' : 'border-slate-800'} hover:border-slate-600 transition-colors`}>
+      {index === 0 && (
+        <span className="inline-block text-xs bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded-full mb-3">
+          Meilleur score
         </span>
+      )}
+
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div>
+          <h3 className="text-base font-semibold">{dest.nom}</h3>
+          <p className="text-sm text-slate-400">{dest.pays}</p>
+        </div>
+        <ScoreBadge score={dest.scoreGlobal} />
       </div>
 
-      <button
-        onClick={handleSubmit}
-        disabled={loading}
-        className="w-full bg-sky-500 hover:bg-sky-400 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-colors text-sm"
-      >
-        {loading ? 'Recherche en cours…' : 'Trouver mon weekend idéal →'}
-      </button>
+      {/* Météo */}
+      <div className="flex flex-wrap gap-2 mb-3">
+        {dest.meteo ? (
+          <span className="text-xs bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-lg">
+            {meteoIcon} {dest.meteo.temp}°C · {dest.meteo.pluie}mm · {dest.meteo.soleil}h soleil
+          </span>
+        ) : (
+          <span className="text-xs bg-slate-700 text-slate-400 px-2 py-1 rounded-lg">Météo indisponible</span>
+        )}
+      </div>
+
+      {/* Prix détaillés */}
+      <div className="bg-slate-800 rounded-xl p-3 mb-4 space-y-2">
+        <div className="flex justify-between text-xs">
+          <span className="text-slate-400">✈️ Vol A/R</span>
+          <span className="text-white font-medium">
+            ~{dest.vol}€
+            <span className={`ml-1 text-xs ${dest.volSource === 'reel' ? 'text-emerald-400' : 'text-slate-500'}`}>
+              {dest.volSource === 'reel' ? '● réel' : '● estimé'}
+            </span>
+          </span>
+        </div>
+        <div className="flex justify-between text-xs">
+          <span className="text-slate-400">🏨 Hôtel ({dest.nbNuits} nuit{dest.nbNuits > 1 ? 's' : ''} × ~{dest.hotel}€)</span>
+          <span className="text-white font-medium">~{dest.hotelTotal}€</span>
+        </div>
+        <div className="border-t border-slate-700 pt-2 flex justify-between text-sm">
+          <span className="text-slate-300 font-medium">Total estimé</span>
+          <span className={`font-bold ${dest.totalEstime <= 400 ? 'text-emerald-400' : dest.totalEstime <= 600 ? 'text-sky-400' : 'text-amber-400'}`}>
+            ~{dest.totalEstime}€
+          </span>
+        </div>
+      </div>
+
+      {/* Barres de score */}
+      <div className="space-y-1.5 mb-4">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-slate-500 w-4">☀</span>
+          <MiniBar value={dest.scoreMeteo} color="bg-emerald-500" />
+          <span className="text-xs text-slate-500 w-6 text-right">{dest.scoreMeteo}</span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-slate-500 w-4">€</span>
+          <MiniBar value={dest.scorePrix} color="bg-sky-500" />
+          <span className="text-xs text-slate-500 w-6 text-right">{dest.scorePrix}</span>
+        </div>
+      </div>
+
+      {/* CTAs */}
+      <div className="flex gap-2">
+        
+          href={dest.kiwiUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-1 text-center text-xs bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border border-sky-500/20 py-2 px-3 rounded-lg transition-colors"
+        >
+          Voir les vols ↗
+        </a>
+        
+          href={dest.bookingUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex-1 text-center text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 py-2 px-3 rounded-lg transition-colors"
+        >
+          Voir les hôtels ↗
+        </a>
+      </div>
+    </div>
+  )
+}
+
+export default function ResultsGrid({
+  results,
+  loading,
+  params,
+}: {
+  results: Destination[]
+  loading: boolean
+  params: SearchParams | null
+}) {
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {[...Array(6)].map((_, i) => (
+          <div key={i} className="bg-slate-900 border border-slate-800 rounded-2xl p-5 animate-pulse">
+            <div className="h-4 bg-slate-700 rounded w-2/3 mb-2" />
+            <div className="h-3 bg-slate-800 rounded w-1/3 mb-4" />
+            <div className="h-16 bg-slate-800 rounded mb-3" />
+            <div className="h-8 bg-slate-800 rounded" />
+          </div>
+        ))}
+      </div>
+    )
+  }
+
+  if (results.length === 0) {
+    return (
+      <div className="text-center py-12 text-slate-400">
+        <p className="text-lg mb-2">Aucune destination trouvée</p>
+        <p className="text-sm">Essaie d'augmenter ton budget ou de changer les critères.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm text-slate-400">
+          <span className="text-white font-medium">{results.length} destinations</span> triées par score
+        </p>
+        <p className="text-xs text-slate-500">Météo Open-Meteo · Vols Travelpayouts</p>
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {results.map((dest, i) => (
+          <DestCard key={dest.iata + i} dest={dest} index={i} />
+        ))}
+      </div>
     </div>
   )
 }
