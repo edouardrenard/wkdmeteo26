@@ -29,17 +29,29 @@ const DESTINATIONS_BASE = [
   { nom: 'Marrakech', pays: 'Maroc', iata: 'RAK', lat: 31.63, lon: -8.00, vol_est: 109, hotel_est: 45 },
 ]
 
-async function fetchMeteo(lat: number, lon: number, dateStr: string): Promise<Meteo | null> {
+async function fetchPrixVol(origIata: string, destIata: string, mois: string, moisRetour: string): Promise<number | null> {
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,precipitation_sum,sunshine_duration&timezone=Europe%2FParis&start_date=${dateStr}&end_date=${dateStr}`
-    const r = await fetch(url)
-    const d = await r.json()
-    if (!d.daily) return null
-    return {
-      temp: Math.round(d.daily.temperature_2m_max[0]),
-      pluie: Math.round(d.daily.precipitation_sum[0] * 10) / 10,
-      soleil: Math.round((d.daily.sunshine_duration[0] || 0) / 3600),
-    }
+    const [resAller, resRetour] = await Promise.all([
+      fetch(`https://api.travelpayouts.com/v1/prices/cheap?origin=${origIata}&destination=${destIata}&depart_date=${mois}&currency=eur&token=${TP_TOKEN}`),
+      fetch(`https://api.travelpayouts.com/v1/prices/cheap?origin=${destIata}&destination=${origIata}&depart_date=${moisRetour}&currency=eur&token=${TP_TOKEN}`)
+    ])
+
+    const [dataAller, dataRetour] = await Promise.all([resAller.json(), resRetour.json()])
+
+    const volsAller: number[] = dataAller.success && dataAller.data?.[destIata]
+      ? Object.values(dataAller.data[destIata]).map((v: any) => v.price).sort((a: number, b: number) => a - b).slice(0, 3)
+      : []
+
+    const volsRetour: number[] = dataRetour.success && dataRetour.data?.[origIata]
+      ? Object.values(dataRetour.data[origIata]).map((v: any) => v.price).sort((a: number, b: number) => a - b).slice(0, 3)
+      : []
+
+    if (!volsAller.length && !volsRetour.length) return null
+
+    const moyAller = volsAller.length ? volsAller.reduce((a, b) => a + b, 0) / volsAller.length : 0
+    const moyRetour = volsRetour.length ? volsRetour.reduce((a, b) => a + b, 0) / volsRetour.length : 0
+
+    return Math.round(moyAller + moyRetour)
   } catch { return null }
 }
 
