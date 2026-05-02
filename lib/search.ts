@@ -29,6 +29,20 @@ const DESTINATIONS_BASE = [
   { nom: 'Marrakech', pays: 'Maroc', iata: 'RAK', lat: 31.63, lon: -8.00, vol_est: 109, hotel_est: 45 },
 ]
 
+async function fetchMeteo(lat: number, lon: number, dateStr: string): Promise<Meteo | null> {
+  try {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,precipitation_sum,sunshine_duration&timezone=Europe%2FParis&start_date=${dateStr}&end_date=${dateStr}`
+    const r = await fetch(url)
+    const d = await r.json()
+    if (!d.daily) return null
+    return {
+      temp: Math.round(d.daily.temperature_2m_max[0]),
+      pluie: Math.round(d.daily.precipitation_sum[0] * 10) / 10,
+      soleil: Math.round((d.daily.sunshine_duration[0] || 0) / 3600),
+    }
+  } catch { return null }
+}
+
 async function fetchPrixVol(origIata: string, destIata: string, mois: string, moisRetour: string): Promise<number | null> {
   try {
     const [resAller, resRetour] = await Promise.all([
@@ -52,18 +66,6 @@ async function fetchPrixVol(origIata: string, destIata: string, mois: string, mo
     const moyRetour = volsRetour.length ? volsRetour.reduce((a, b) => a + b, 0) / volsRetour.length : 0
 
     return Math.round(moyAller + moyRetour)
-  } catch { return null }
-}
-
-async function fetchPrixVol(origIata: string, destIata: string, mois: string): Promise<number | null> {
-  try {
-    const url = `https://api.travelpayouts.com/v1/prices/cheap?origin=${origIata}&destination=${destIata}&depart_date=${mois}&currency=eur&token=${TP_TOKEN}`
-    const r = await fetch(url)
-    const d = await r.json()
-    if (!d.success || !d.data?.[destIata]) return null
-    const vols = Object.values(d.data[destIata]) as { price: number }[]
-    if (!vols.length) return null
-    return Math.min(...vols.map(v => v.price))
   } catch { return null }
 }
 
@@ -103,7 +105,7 @@ export async function searchDestinations(params: SearchParams): Promise<Destinat
     const batch = DESTINATIONS_BASE.slice(i, i + BATCH)
     const fetches = batch.map(d => Promise.all([
       fetchMeteo(d.lat, d.lon, satDate),
-      fetchPrixVol(departIata, d.iata, mois),
+      fetchPrixVol(departIata, d.iata, mois, mois),
     ]))
     const batchResults = await Promise.all(fetches)
     batch.forEach((d, j) => {
