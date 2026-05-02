@@ -43,21 +43,21 @@ async function fetchMeteo(lat: number, lon: number, dateStr: string): Promise<Me
   } catch { return null }
 }
 
-async function fetchPrixVol(origIata: string, destIata: string, mois: string, moisRetour: string): Promise<number | null> {
+async function fetchPrixVol(origIata: string, destIata: string, satDate: string, sunDate: string): Promise<number | null> {
   try {
     const [resAller, resRetour] = await Promise.all([
-      fetch(`https://api.travelpayouts.com/v1/prices/cheap?origin=${origIata}&destination=${destIata}&depart_date=${mois}&currency=eur&token=${TP_TOKEN}`),
-      fetch(`https://api.travelpayouts.com/v1/prices/cheap?origin=${destIata}&destination=${origIata}&depart_date=${moisRetour}&currency=eur&token=${TP_TOKEN}`)
+      fetch(`https://api.travelpayouts.com/v2/prices/latest?origin=${origIata}&destination=${destIata}&depart_date=${satDate}&currency=eur&one_way=true&token=${TP_TOKEN}`),
+      fetch(`https://api.travelpayouts.com/v2/prices/latest?origin=${destIata}&destination=${origIata}&depart_date=${sunDate}&currency=eur&one_way=true&token=${TP_TOKEN}`)
     ])
 
     const [dataAller, dataRetour] = await Promise.all([resAller.json(), resRetour.json()])
 
-    const volsAller: number[] = dataAller.success && dataAller.data?.[destIata]
-      ? Object.values(dataAller.data[destIata]).map((v: any) => v.price).sort((a: number, b: number) => a - b).slice(0, 3)
+    const volsAller: number[] = dataAller.success && dataAller.data?.length
+      ? dataAller.data.map((v: any) => v.value).sort((a: number, b: number) => a - b).slice(0, 3)
       : []
 
-    const volsRetour: number[] = dataRetour.success && dataRetour.data?.[origIata]
-      ? Object.values(dataRetour.data[origIata]).map((v: any) => v.price).sort((a: number, b: number) => a - b).slice(0, 3)
+    const volsRetour: number[] = dataRetour.success && dataRetour.data?.length
+      ? dataRetour.data.map((v: any) => v.value).sort((a: number, b: number) => a - b).slice(0, 3)
       : []
 
     if (!volsAller.length && !volsRetour.length) return null
@@ -105,7 +105,7 @@ export async function searchDestinations(params: SearchParams): Promise<Destinat
     const batch = DESTINATIONS_BASE.slice(i, i + BATCH)
     const fetches = batch.map(d => Promise.all([
       fetchMeteo(d.lat, d.lon, satDate),
-      fetchPrixVol(departIata, d.iata, mois, mois),
+      fetchPrixVol(departIata, d.iata, satDate, sunDate),
     ]))
     const batchResults = await Promise.all(fetches)
     batch.forEach((d, j) => {
