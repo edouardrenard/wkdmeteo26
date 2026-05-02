@@ -1,11 +1,12 @@
 export interface SearchParams {
   depart: string
   departIata: string
-  weekendIndex: number
   budget: number
   meteoPreference: 'soleil' | 'doux' | 'peu_pluie'
-  satDate: string
-  sunDate: string
+  departDate: string
+  retourDate: string
+  nbNuits: number
+  weekendIndex: number
 }
 
 export interface Meteo {
@@ -24,6 +25,9 @@ export interface Destination {
   vol: number
   volSource: 'reel' | 'estime'
   hotel: number
+  hotelTotal: number
+  nbNuits: number
+  totalEstime: number
   scoreMeteo: number
   scorePrix: number
   scoreGlobal: number
