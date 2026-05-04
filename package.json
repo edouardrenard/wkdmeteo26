@@ -1,6 +1,6 @@
 {
   "name": "weekend-meteo",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,7 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "15.3.2",
+    "next": "15.3.3",
     "react": "^19",
     "react-dom": "^19",
     "leaflet": "^1.9.4",
