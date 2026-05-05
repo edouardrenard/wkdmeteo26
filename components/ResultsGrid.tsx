@@ -71,7 +71,7 @@ function Card({ dest, index }: { dest: Destination, index: number }) {
         {dest.transports[1] && <TransportRow t={dest.transports[1]} />}
         {dest.transports[2] && <TransportRow t={dest.transports[2]} />}
         <div className="flex justify-between text-xs">
-          <span className="text-slate-400">🏨 Hôtel ({dest.nbNuits} nuit{dest.nbNuits > 1 ? 's' : ''} × ~{dest.hotelNuit}€)</span>
+          <span className="text-slate-400">🏨 Hôtel (~{dest.hotelNuit}€/nuit)</span>
           <span className="text-white font-medium">~{dest.hotelTotal}€</span>
         </div>
         <div className="border-t border-slate-700 pt-2 flex justify-between text-sm">
