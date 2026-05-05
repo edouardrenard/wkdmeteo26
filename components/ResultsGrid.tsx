@@ -1,34 +1,59 @@
 'use client'
 
-import { Destination } from '@/lib/types'
+import { Destination, Transport } from '@/lib/types'
 
-function transportIcon(type: string): string {
-  if (type === 'train') return '🚆'
-  if (type === 'voiture') return '🚗'
-  return '✈️'
+function tIcon(type: string) {
+  return type === 'train' ? '🚆' : type === 'voiture' ? '🚗' : '✈️'
 }
 
-function DestCard({ dest, index }: { dest: Destination, index: number }) {
-  const meteoIcon = dest.meteo
-    ? dest.meteo.soleil >= 6 ? '☀️' : dest.meteo.soleil >= 3 ? '⛅' : '☁️'
-    : '?'
+function tLabel(type: string) {
+  return type.charAt(0).toUpperCase() + type.slice(1)
+}
+
+function TransportRow({ t }: { t: Transport }) {
+  return (
+    <div className="flex justify-between text-xs">
+      <span className="text-slate-400">{tIcon(t.type)} {tLabel(t.type)} A/R{t.duree ? ` (${t.duree})` : ''}</span>
+      <span className="text-white font-medium">
+        ~{t.prixAR}€{' '}
+        <span className={`text-xs ${t.source === 'reel' ? 'text-emerald-400' : 'text-slate-500'}`}>
+          {t.source === 'reel' ? '● réel' : '● estimé'}
+        </span>
+      </span>
+    </div>
+  )
+}
+
+function TransportBtn({ t }: { t: Transport }) {
+  const cls = t.type === 'train'
+    ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/20'
+    : t.type === 'voiture'
+    ? 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border-blue-500/20'
+    : 'bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border-sky-500/20'
+  return (
+    <a href={t.lien} target="_blank" rel="noopener noreferrer"
+      className={`flex-1 text-center text-xs py-2 px-2 rounded-lg border transition-colors ${cls}`}>
+      {tIcon(t.type)} {tLabel(t.type)} ↗
+    </a>
+  )
+}
+
+function Card({ dest, index }: { dest: Destination, index: number }) {
+  const m = dest.meteo
+  const mi = m ? (m.soleil >= 6 ? '☀️' : m.soleil >= 3 ? '⛅' : '☁️') : '?'
   const sc = dest.scoreGlobal >= 80 ? 'text-emerald-400 bg-emerald-400/10'
     : dest.scoreGlobal >= 65 ? 'text-green-400 bg-green-400/10'
     : dest.scoreGlobal >= 50 ? 'text-amber-400 bg-amber-400/10'
     : 'text-red-400 bg-red-400/10'
   const tc = dest.totalEstime <= 200 ? 'text-emerald-400'
-    : dest.totalEstime <= 400 ? 'text-sky-400'
-    : 'text-amber-400'
-  const icon = transportIcon(dest.meilleurTransport.type)
+    : dest.totalEstime <= 400 ? 'text-sky-400' : 'text-amber-400'
 
   return (
     <div className={`bg-slate-900 rounded-2xl p-5 border ${index === 0 ? 'border-sky-500' : 'border-slate-800'} hover:border-slate-600 transition-colors`}>
-      {index === 0 && (
-        <span className="inline-block text-xs bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded-full mb-3">Meilleur score</span>
-      )}
+      {index === 0 && <span className="inline-block text-xs bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded-full mb-3">Meilleur score</span>}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
-          <h3 className="text-base font-semibold">{icon} {dest.nom}</h3>
+          <h3 className="text-base font-semibold">{tIcon(dest.meilleurTransport.type)} {dest.nom}</h3>
           <p className="text-sm text-slate-400">{dest.region}</p>
         </div>
         <div className={`w-14 h-14 rounded-full flex flex-col items-center justify-center flex-shrink-0 ${sc}`}>
@@ -36,18 +61,15 @@ function DestCard({ dest, index }: { dest: Destination, index: number }) {
           <span className="text-xs opacity-70">score</span>
         </div>
       </div>
-      {dest.meteo && (
+      {m && (
         <div className="text-xs bg-emerald-500/10 text-emerald-400 px-3 py-1.5 rounded-lg mb-3 inline-block">
-          {meteoIcon} {dest.meteo.temp}°C · {dest.meteo.pluie}mm · {dest.meteo.soleil}h soleil
+          {mi} {m.temp}°C · {m.pluie}mm · {m.soleil}h soleil
         </div>
       )}
       <div className="bg-slate-800 rounded-xl p-3 mb-4 space-y-2">
-        {dest.transports.map(t => (
-          <div key={t.type} className="flex justify-between text-xs">
-            <span className="text-slate-400">{transportIcon(t.type)} {t.type.charAt(0).toUpperCase() + t.type.slice(1)} A/R{t.duree ? ` (${t.duree})` : ''}</span>
-            <span className="text-white font-medium">~{t.prixAR}€ <span className={`text-xs ${t.source === 'reel' ? 'text-emerald-400' : 'text-slate-500'}`}>{t.source === 'reel' ? '● réel' : '● estimé'}</span></span>
-          </div>
-        ))}
+        {dest.transports[0] && <TransportRow t={dest.transports[0]} />}
+        {dest.transports[1] && <TransportRow t={dest.transports[1]} />}
+        {dest.transports[2] && <TransportRow t={dest.transports[2]} />}
         <div className="flex justify-between text-xs">
           <span className="text-slate-400">🏨 Hôtel ({dest.nbNuits} nuit{dest.nbNuits > 1 ? 's' : ''} × ~{dest.hotelNuit}€)</span>
           <span className="text-white font-medium">~{dest.hotelTotal}€</span>
@@ -74,16 +96,9 @@ function DestCard({ dest, index }: { dest: Destination, index: number }) {
         </div>
       </div>
       <div className="flex gap-2 flex-wrap">
-        {dest.transports.map(t => (
-          <a key={t.type} href={t.lien} target="_blank" rel="noopener noreferrer"
-            className={`flex-1 text-center text-xs py-2 px-2 rounded-lg border transition-colors ${
-              t.type === 'train' ? 'bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border-emerald-500/20'
-              : t.type === 'voiture' ? 'bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border-blue-500/20'
-              : 'bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border-sky-500/20'
-            }`}>
-            {transportIcon(t.type)} {t.type.charAt(0).toUpperCase() + t.type.slice(1)} ↗
-          </a>
-        ))}
+        {dest.transports[0] && <TransportBtn t={dest.transports[0]} />}
+        {dest.transports[1] && <TransportBtn t={dest.transports[1]} />}
+        {dest.transports[2] && <TransportBtn t={dest.transports[2]} />}
         <a href={dest.bookingUrl} target="_blank" rel="noopener noreferrer"
           className="flex-1 text-center text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 py-2 px-2 rounded-lg transition-colors">
           🏨 Hôtel ↗
@@ -93,10 +108,7 @@ function DestCard({ dest, index }: { dest: Destination, index: number }) {
   )
 }
 
-export default function ResultsGrid({ results, loading }: {
-  results: Destination[]
-  loading: boolean
-}) {
+export default function ResultsGrid({ results, loading }: { results: Destination[], loading: boolean }) {
   if (loading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -111,7 +123,6 @@ export default function ResultsGrid({ results, loading }: {
       </div>
     )
   }
-
   if (results.length === 0) {
     return (
       <div className="text-center py-16 text-slate-400">
@@ -121,10 +132,9 @@ export default function ResultsGrid({ results, loading }: {
       </div>
     )
   }
-
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {results.map((dest, i) => <DestCard key={dest.nom + i} dest={dest} index={i} />)}
+      {results.map((d, i) => <Card key={d.nom + i} dest={d} index={i} />)}
     </div>
   )
 }
