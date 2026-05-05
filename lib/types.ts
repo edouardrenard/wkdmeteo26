@@ -1,43 +1,54 @@
 export interface SearchParams {
-  depart: string
-  departIata: string
+  departDate: string   // date de départ (vendredi ou samedi)
+  retourDate: string   // toujours dimanche
+  nbNuits: number      // 1 (sam-dim) ou 2 (ven-dim)
   budget: number
   meteoPreference: 'soleil' | 'doux' | 'peu_pluie'
-  departDate: string
-  retourDate: string
-  nbNuits: number
-  weekendIndex: number
+  partirVendredi: boolean
 }
 
 export interface Meteo {
-  temp: number
-  pluie: number
-  soleil: number
+  temp: number    // température moyenne sam+dim
+  pluie: number   // précipitations moyennes sam+dim
+  soleil: number  // heures de soleil moyennes sam+dim
+}
+
+export interface Transport {
+  type: 'train' | 'voiture' | 'avion'
+  prixAR: number
+  source: 'reel' | 'estime'
+  lien: string
+  duree?: string
 }
 
 export interface Destination {
+  // Identité
   nom: string
+  region: string
   pays: string
-  region?: string
-  iata: string
   lat: number
   lon: number
-  transport: 'avion' | 'train' | 'les deux'
-  meteo: Meteo | null
-  vol: number
-  volSource: 'reel' | 'estime'
-  train: number | null
-  trainSource: 'reel' | 'estime' | null
-  meilleurPrix: number
-  meilleurTransport: 'avion' | 'train'
-  hotel: number
-  hotelTotal: number
-  nbNuits: number
+  iata?: string
+
+  // Transports disponibles
+  transports: Transport[]
+  meilleurTransport: Transport
+
+  // Hébergement
+  hotelNuit: number   // prix moyen par nuit
+  hotelTotal: number  // × nbNuits
+
+  // Total
   totalEstime: number
+
+  // Météo
+  meteo: Meteo | null
+
+  // Scores
   scoreMeteo: number
   scorePrix: number
   scoreGlobal: number
-  kiwiUrl: string
+
+  // Liens affiliation
   bookingUrl: string
-  omioUrl: string
 }
