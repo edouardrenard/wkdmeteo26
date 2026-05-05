@@ -53,7 +53,7 @@ export default function ResultsGrid({ results, loading }: {
   return (
     <div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {results.map((dest, i) => {
+         {results.map((dest, i) => {
           const meteoIcon = dest.meteo
             ? dest.meteo.soleil >= 6 ? '☀️' : dest.meteo.soleil >= 3 ? '⛅' : '☁️'
             : '?'
