@@ -1,63 +1,48 @@
-import { Destination, Meteo, SearchParams } from './types'
+import { Destination, Meteo, SearchParams, Transport } from './types'
 
 const TP_TOKEN = '74f9e5198dc096bdda20fec145988527'
 const BOOKING_AID = '397594'
 
-// Prix train SNCF indicatifs depuis Paris (min/max Open Data SNCF)
-// Source : ressources.data.sncf.com/explore/dataset/tarifs-tgv-inoui-ouigo
-const TRAINS_FR: Record<string, { prix_min: number, prix_max: number, duree: string }> = {
-  'LYS': { prix_min: 19, prix_max: 89, duree: '2h' },
-  'MRS': { prix_min: 19, prix_max: 109, duree: '3h20' },
-  'NCE': { prix_min: 29, prix_max: 129, duree: '5h30' },
-  'BOD': { prix_min: 19, prix_max: 79, duree: '2h' },
-  'TLS': { prix_min: 19, prix_max: 89, duree: '4h20' },
-  'NTE': { prix_min: 19, prix_max: 79, duree: '2h10' },
-  'RNS': { prix_min: 19, prix_max: 69, duree: '2h' },
-  'SXB': { prix_min: 19, prix_max: 79, duree: '1h50' },
-  'DIJ': { prix_min: 14, prix_max: 59, duree: '1h35' },
-  'LIL': { prix_min: 14, prix_max: 59, duree: '1h' },
-  'MPL': { prix_min: 19, prix_max: 99, duree: '3h20' },
-  'REN': { prix_min: 19, prix_max: 69, duree: '2h05' },
-  'CLF': { prix_min: 19, prix_max: 69, duree: '2h50' },
-  'NIM': { prix_min: 19, prix_max: 89, duree: '2h50' },
-  'AVN': { prix_min: 19, prix_max: 79, duree: '2h40' },
-}
+// Coût voiture au km (barème fiscal 2024, véhicule 5CV)
+const COUT_KM = 0.21
 
+// Destinations avec distances depuis Paris en km
 const DESTINATIONS_BASE = [
-  // Destinations avion Europe
-  { nom: 'Lisbonne', pays: 'Portugal', region: 'Portugal', iata: 'LIS', lat: 38.72, lon: -9.14, vol_est: 89, hotel_est: 70, transport: 'avion' as const },
-  { nom: 'Séville', pays: 'Espagne', region: 'Andalousie', iata: 'SVQ', lat: 37.39, lon: -5.99, vol_est: 79, hotel_est: 60, transport: 'avion' as const },
-  { nom: 'Barcelone', pays: 'Espagne', region: 'Catalogne', iata: 'BCN', lat: 41.39, lon: 2.16, vol_est: 69, hotel_est: 90, transport: 'avion' as const },
-  { nom: 'Rome', pays: 'Italie', region: 'Latium', iata: 'FCO', lat: 41.90, lon: 12.50, vol_est: 89, hotel_est: 95, transport: 'avion' as const },
-  { nom: 'Amsterdam', pays: 'Pays-Bas', region: 'Hollande', iata: 'AMS', lat: 52.37, lon: 4.90, vol_est: 79, hotel_est: 100, transport: 'avion' as const },
-  { nom: 'Prague', pays: 'Tchéquie', region: 'Bohême', iata: 'PRG', lat: 50.08, lon: 14.44, vol_est: 69, hotel_est: 55, transport: 'avion' as const },
-  { nom: 'Athènes', pays: 'Grèce', region: 'Attique', iata: 'ATH', lat: 37.98, lon: 23.73, vol_est: 114, hotel_est: 70, transport: 'avion' as const },
-  { nom: 'Budapest', pays: 'Hongrie', region: 'Pannonie', iata: 'BUD', lat: 47.50, lon: 19.04, vol_est: 84, hotel_est: 50, transport: 'avion' as const },
-  { nom: 'Malte', pays: 'Malte', region: 'Malte', iata: 'MLA', lat: 35.90, lon: 14.51, vol_est: 104, hotel_est: 65, transport: 'avion' as const },
-  { nom: 'Marrakech', pays: 'Maroc', region: 'Maroc', iata: 'RAK', lat: 31.63, lon: -8.00, vol_est: 109, hotel_est: 50, transport: 'avion' as const },
-  // Destinations train France
-  { nom: 'Lyon', pays: 'France', region: 'Auvergne-Rhône-Alpes', iata: 'LYS', lat: 45.75, lon: 4.85, vol_est: 999, hotel_est: 85, transport: 'train' as const },
-  { nom: 'Marseille', pays: 'France', region: 'Provence-Alpes-Côte d\'Azur', iata: 'MRS', lat: 43.30, lon: 5.38, vol_est: 999, hotel_est: 80, transport: 'train' as const },
-  { nom: 'Nice', pays: 'France', region: 'Provence-Alpes-Côte d\'Azur', iata: 'NCE', lat: 43.71, lon: 7.26, vol_est: 999, hotel_est: 90, transport: 'train' as const },
-  { nom: 'Bordeaux', pays: 'France', region: 'Nouvelle-Aquitaine', iata: 'BOD', lat: 44.84, lon: -0.58, vol_est: 999, hotel_est: 80, transport: 'train' as const },
-  { nom: 'Toulouse', pays: 'France', region: 'Occitanie', iata: 'TLS', lat: 43.60, lon: 1.44, vol_est: 999, hotel_est: 75, transport: 'train' as const },
-  { nom: 'Nantes', pays: 'France', region: 'Pays de la Loire', iata: 'NTE', lat: 47.22, lon: -1.55, vol_est: 999, hotel_est: 75, transport: 'train' as const },
-  { nom: 'Strasbourg', pays: 'France', region: 'Grand Est', iata: 'SXB', lat: 48.58, lon: 7.75, vol_est: 999, hotel_est: 80, transport: 'train' as const },
-  { nom: 'Dijon', pays: 'France', region: 'Bourgogne-Franche-Comté', iata: 'DIJ', lat: 47.32, lon: 5.04, vol_est: 999, hotel_est: 65, transport: 'train' as const },
-  { nom: 'Lille', pays: 'France', region: 'Hauts-de-France', iata: 'LIL', lat: 50.63, lon: 3.07, vol_est: 999, hotel_est: 75, transport: 'train' as const },
-  { nom: 'Montpellier', pays: 'France', region: 'Occitanie', iata: 'MPL', lat: 43.61, lon: 3.88, vol_est: 999, hotel_est: 75, transport: 'train' as const },
-  { nom: 'Rennes', pays: 'France', region: 'Bretagne', iata: 'REN', lat: 48.11, lon: -1.68, vol_est: 999, hotel_est: 70, transport: 'train' as const },
-  { nom: 'Clermont-Ferrand', pays: 'France', region: 'Auvergne-Rhône-Alpes', iata: 'CLF', lat: 45.78, lon: 3.08, vol_est: 999, hotel_est: 60, transport: 'train' as const },
-  { nom: 'Nîmes', pays: 'France', region: 'Occitanie', iata: 'NIM', lat: 43.84, lon: 4.36, vol_est: 999, hotel_est: 65, transport: 'train' as const },
-  { nom: 'Avignon', pays: 'France', region: 'Provence-Alpes-Côte d\'Azur', iata: 'AVN', lat: 43.95, lon: 4.81, vol_est: 999, hotel_est: 70, transport: 'train' as const },
+  // France — train + voiture
+  { nom: 'Lyon', region: 'Auvergne-Rhône-Alpes', pays: 'France', lat: 45.75, lon: 4.85, iata: 'LYS', distanceKm: 465, trainMin: 19, trainMax: 89, trainDuree: '2h', hotel: 85 },
+  { nom: 'Marseille', region: 'Provence-Alpes-Côte d\'Azur', pays: 'France', lat: 43.30, lon: 5.38, iata: 'MRS', distanceKm: 775, trainMin: 19, trainMax: 109, trainDuree: '3h20', hotel: 80 },
+  { nom: 'Nice', region: 'Provence-Alpes-Côte d\'Azur', pays: 'France', lat: 43.71, lon: 7.26, iata: 'NCE', distanceKm: 930, trainMin: 29, trainMax: 129, trainDuree: '5h30', hotel: 90 },
+  { nom: 'Bordeaux', region: 'Nouvelle-Aquitaine', pays: 'France', lat: 44.84, lon: -0.58, iata: 'BOD', distanceKm: 580, trainMin: 19, trainMax: 79, trainDuree: '2h', hotel: 80 },
+  { nom: 'Toulouse', region: 'Occitanie', pays: 'France', lat: 43.60, lon: 1.44, iata: 'TLS', distanceKm: 680, trainMin: 19, trainMax: 89, trainDuree: '4h20', hotel: 75 },
+  { nom: 'Nantes', region: 'Pays de la Loire', pays: 'France', lat: 47.22, lon: -1.55, iata: 'NTE', distanceKm: 385, trainMin: 19, trainMax: 79, trainDuree: '2h10', hotel: 75 },
+  { nom: 'Strasbourg', region: 'Grand Est', pays: 'France', lat: 48.58, lon: 7.75, iata: 'SXB', distanceKm: 490, trainMin: 19, trainMax: 79, trainDuree: '1h50', hotel: 80 },
+  { nom: 'Dijon', region: 'Bourgogne-Franche-Comté', pays: 'France', lat: 47.32, lon: 5.04, iata: 'DIJ', distanceKm: 310, trainMin: 14, trainMax: 59, trainDuree: '1h35', hotel: 65 },
+  { nom: 'Lille', region: 'Hauts-de-France', pays: 'France', lat: 50.63, lon: 3.07, iata: 'LIL', distanceKm: 220, trainMin: 14, trainMax: 59, trainDuree: '1h', hotel: 75 },
+  { nom: 'Montpellier', region: 'Occitanie', pays: 'France', lat: 43.61, lon: 3.88, iata: 'MPL', distanceKm: 750, trainMin: 19, trainMax: 99, trainDuree: '3h20', hotel: 75 },
+  { nom: 'Rennes', region: 'Bretagne', pays: 'France', lat: 48.11, lon: -1.68, iata: 'RNS', distanceKm: 350, trainMin: 19, trainMax: 69, trainDuree: '2h05', hotel: 70 },
+  { nom: 'Avignon', region: 'Provence-Alpes-Côte d\'Azur', pays: 'France', lat: 43.95, lon: 4.81, iata: 'AVN', distanceKm: 690, trainMin: 19, trainMax: 79, trainDuree: '2h40', hotel: 70 },
+  { nom: 'Nîmes', region: 'Occitanie', pays: 'France', lat: 43.84, lon: 4.36, iata: 'NIM', distanceKm: 720, trainMin: 19, trainMax: 89, trainDuree: '2h50', hotel: 65 },
+  { nom: 'Biarritz', region: 'Nouvelle-Aquitaine', pays: 'France', lat: 43.48, lon: -1.56, iata: 'BIQ', distanceKm: 760, trainMin: 29, trainMax: 99, trainDuree: '4h30', hotel: 90 },
+  { nom: 'Annecy', region: 'Auvergne-Rhône-Alpes', pays: 'France', lat: 45.90, lon: 6.12, iata: 'NCY', distanceKm: 545, trainMin: 24, trainMax: 79, trainDuree: '3h30', hotel: 85 },
+  // Europe — avion
+  { nom: 'Lisbonne', region: 'Portugal', pays: 'Portugal', lat: 38.72, lon: -9.14, iata: 'LIS', distanceKm: 1800, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 70 },
+  { nom: 'Barcelone', region: 'Catalogne', pays: 'Espagne', lat: 41.39, lon: 2.16, iata: 'BCN', distanceKm: 1100, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 90 },
+  { nom: 'Rome', region: 'Latium', pays: 'Italie', lat: 41.90, lon: 12.50, iata: 'FCO', distanceKm: 1400, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 95 },
+  { nom: 'Amsterdam', region: 'Hollande', pays: 'Pays-Bas', lat: 52.37, lon: 4.90, iata: 'AMS', distanceKm: 500, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 100 },
+  { nom: 'Prague', region: 'Bohême', pays: 'Tchéquie', lat: 50.08, lon: 14.44, iata: 'PRG', distanceKm: 1100, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 55 },
+  { nom: 'Séville', region: 'Andalousie', pays: 'Espagne', lat: 37.39, lon: -5.99, iata: 'SVQ', distanceKm: 1700, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 60 },
+  { nom: 'Budapest', region: 'Pannonie', pays: 'Hongrie', lat: 47.50, lon: 19.04, iata: 'BUD', distanceKm: 1500, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 50 },
+  { nom: 'Marrakech', region: 'Maroc', pays: 'Maroc', lat: 31.63, lon: -8.00, iata: 'RAK', distanceKm: 2300, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 50 },
+  { nom: 'Athènes', region: 'Attique', pays: 'Grèce', lat: 37.98, lon: 23.73, iata: 'ATH', distanceKm: 2400, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 70 },
+  { nom: 'Madrid', region: 'Castille', pays: 'Espagne', lat: 40.42, lon: -3.70, iata: 'MAD', distanceKm: 1300, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 75 },
 ]
 
-async function fetchMeteo(lat: number, lon: number, startDate: string, endDate: string): Promise<Meteo | null> {
+async function fetchMeteo(lat: number, lon: number, satDate: string, sunDate: string): Promise<Meteo | null> {
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,precipitation_sum,sunshine_duration&timezone=Europe%2FParis&start_date=${startDate}&end_date=${endDate}`
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,precipitation_sum,sunshine_duration&timezone=Europe%2FParis&start_date=${satDate}&end_date=${sunDate}`
     const r = await fetch(url)
     const d = await r.json()
-    if (!d.daily || !d.daily.temperature_2m_max.length) return null
+    if (!d.daily?.temperature_2m_max?.length) return null
     const n = d.daily.temperature_2m_max.length
     return {
       temp: Math.round(d.daily.temperature_2m_max.reduce((a: number, b: number) => a + b, 0) / n),
@@ -67,35 +52,18 @@ async function fetchMeteo(lat: number, lon: number, startDate: string, endDate: 
   } catch { return null }
 }
 
-async function fetchPrixVol(origIata: string, destIata: string, departDate: string, retourDate: string): Promise<number | null> {
+async function fetchPrixVol(destIata: string, departDate: string, retourDate: string): Promise<number | null> {
   try {
-    const [resAller, resRetour] = await Promise.all([
-      fetch(`https://api.travelpayouts.com/v2/prices/latest?origin=${origIata}&destination=${destIata}&depart_date=${departDate}&currency=eur&one_way=true&token=${TP_TOKEN}`),
-      fetch(`https://api.travelpayouts.com/v2/prices/latest?origin=${destIata}&destination=${origIata}&depart_date=${retourDate}&currency=eur&one_way=true&token=${TP_TOKEN}`)
+    const [r1, r2] = await Promise.all([
+      fetch(`https://api.travelpayouts.com/v2/prices/latest?origin=PAR&destination=${destIata}&depart_date=${departDate}&currency=eur&one_way=true&token=${TP_TOKEN}`),
+      fetch(`https://api.travelpayouts.com/v2/prices/latest?origin=${destIata}&destination=PAR&depart_date=${retourDate}&currency=eur&one_way=true&token=${TP_TOKEN}`)
     ])
-    const [dataAller, dataRetour] = await Promise.all([resAller.json(), resRetour.json()])
-    const volsAller: number[] = dataAller.success && dataAller.data?.length
-      ? dataAller.data.map((v: any) => v.value).sort((a: number, b: number) => a - b).slice(0, 3)
-      : []
-    const volsRetour: number[] = dataRetour.success && dataRetour.data?.length
-      ? dataRetour.data.map((v: any) => v.value).sort((a: number, b: number) => a - b).slice(0, 3)
-      : []
-    if (!volsAller.length && !volsRetour.length) return null
-    const moyAller = volsAller.length ? volsAller.reduce((a, b) => a + b, 0) / volsAller.length : 0
-    const moyRetour = volsRetour.length ? volsRetour.reduce((a, b) => a + b, 0) / volsRetour.length : 0
-    return Math.round(moyAller + moyRetour)
+    const [d1, d2] = await Promise.all([r1.json(), r2.json()])
+    const aller = d1.success && d1.data?.length ? Math.min(...d1.data.slice(0,3).map((v: any) => v.value)) : null
+    const retour = d2.success && d2.data?.length ? Math.min(...d2.data.slice(0,3).map((v: any) => v.value)) : null
+    if (!aller && !retour) return null
+    return Math.round((aller || 0) + (retour || 0))
   } catch { return null }
-}
-
-function getPrixTrain(iata: string): number | null {
-  const data = TRAINS_FR[iata]
-  if (!data) return null
-  // Prix moyen A/R estimé = (min + max) / 2 * 2
-  return Math.round((data.prix_min + data.prix_max) / 2 * 2)
-}
-
-function getDureeTrain(iata: string): string {
-  return TRAINS_FR[iata]?.duree || ''
 }
 
 function scoreMeteo(m: Meteo | null, pref: string): number {
@@ -124,13 +92,14 @@ function scorePrix(meilleurPrix: number, hotelTotal: number, budget: number): nu
 }
 
 export async function searchDestinations(params: SearchParams): Promise<Destination[]> {
-  const { departIata, budget, meteoPreference, departDate, retourDate, nbNuits } = params
+  const { departDate, retourDate, nbNuits, budget, meteoPreference } = params
 
+  // Dates météo : toujours sam + dim
   const satDate = nbNuits === 1 ? departDate : (() => {
-    const d = new Date(departDate)
-    d.setDate(d.getDate() + 1)
+    const d = new Date(departDate); d.setDate(d.getDate() + 1)
     return d.toISOString().split('T')[0]
   })()
+  const sunDate = retourDate
 
   const resultats: Destination[] = []
   const BATCH = 4
@@ -138,63 +107,90 @@ export async function searchDestinations(params: SearchParams): Promise<Destinat
   for (let i = 0; i < DESTINATIONS_BASE.length; i += BATCH) {
     const batch = DESTINATIONS_BASE.slice(i, i + BATCH)
     const fetches = batch.map(d => Promise.all([
-      fetchMeteo(d.lat, d.lon, satDate, retourDate),
-      d.transport === 'avion' ? fetchPrixVol(departIata, d.iata, departDate, retourDate) : Promise.resolve(null),
+      fetchMeteo(d.lat, d.lon, satDate, sunDate),
+      d.trainMin < 500 ? Promise.resolve(null) : fetchPrixVol(d.iata!, departDate, retourDate),
     ]))
     const batchResults = await Promise.all(fetches)
 
     batch.forEach((d, j) => {
-      const [meteo, prixVolReel] = batchResults[j]
+      const [meteo, prixVol] = batchResults[j]
 
-      // Prix avion
-      const vol = d.transport === 'avion' ? (prixVolReel ?? d.vol_est) : null
-      const volSource: 'reel' | 'estime' = prixVolReel ? 'reel' : 'estime'
+      const transports: Transport[] = []
 
-      // Prix train
-      const train = d.transport === 'train' ? getPrixTrain(d.iata) : null
-      const trainSource = d.transport === 'train' ? 'estime' as const : null
+      // Train (destinations françaises)
+      if (d.trainMin < 500) {
+        const prixTrainAR = Math.round((d.trainMin + d.trainMax) / 2 * 2)
+        transports.push({
+          type: 'train',
+          prixAR: prixTrainAR,
+          source: 'estime',
+          lien: `https://www.omio.fr/trains/paris/${encodeURIComponent(d.nom.toLowerCase())}?departureDate=${departDate}&returnDate=${retourDate}`,
+          duree: d.trainDuree,
+        })
+      }
 
-      // Meilleur transport
-      const meilleurPrix = d.transport === 'train' ? (train ?? 999) : (vol ?? 999)
-      const meilleurTransport = d.transport === 'train' ? 'train' as const : 'avion' as const
+      // Voiture (toutes destinations < 1000km)
+      if (d.distanceKm < 1000) {
+        const prixVoitureAR = Math.round(d.distanceKm * 2 * COUT_KM)
+        transports.push({
+          type: 'voiture',
+          prixAR: prixVoitureAR,
+          source: 'estime',
+          lien: `https://www.viamichelin.fr/web/itineraires?from=Paris&to=${encodeURIComponent(d.nom)}`,
+          duree: `~${Math.round(d.distanceKm / 100)}h`,
+        })
+      }
 
-      const hotelNuit = d.hotel_est
+      // Avion (destinations européennes)
+      if (d.trainMin >= 500) {
+        const prixAvion = prixVol ?? Math.round(d.distanceKm * 0.07 + 30)
+        transports.push({
+          type: 'avion',
+          prixAR: prixAvion,
+          source: prixVol ? 'reel' : 'estime',
+          lien: `https://www.kiwi.com/fr/search/results/Paris/${encodeURIComponent(d.nom)}/${departDate}/${retourDate}?affilid=${TP_TOKEN}`,
+        })
+      }
+
+      if (!transports.length) return
+
+      // Meilleur transport = le moins cher
+      const meilleurTransport = transports.reduce((a, b) => a.prixAR < b.prixAR ? a : b)
+
+      const hotelNuit = d.hotel
       const hotelTotal = hotelNuit * nbNuits
-      const totalEstime = meilleurPrix + hotelTotal
+      const totalEstime = meilleurTransport.prixAR + hotelTotal
 
       const sm = scoreMeteo(meteo, meteoPreference)
-      const sp = scorePrix(meilleurPrix, hotelTotal, budget)
+      const sp = scorePrix(meilleurTransport.prixAR, hotelTotal, budget)
       const sg = Math.round(sm * 0.55 + sp * 0.45)
 
-      const kiwiUrl = `https://www.kiwi.com/fr/search/results/Paris/${encodeURIComponent(d.nom)}/${departDate}/${retourDate}?affilid=${TP_TOKEN}`
       const bookingUrl = `https://www.booking.com/searchresults.fr.html?ss=${encodeURIComponent(d.nom)}&checkin=${departDate}&checkout=${retourDate}&aid=${BOOKING_AID}`
-      const omioUrl = `https://www.omio.fr/trains/paris/${encodeURIComponent(d.nom.toLowerCase())}?departureDate=${departDate}&returnDate=${retourDate}`
 
       resultats.push({
-        ...d,
-        meteo,
-        vol: vol ?? 0,
-        volSource,
-        train,
-        trainSource,
-        meilleurPrix,
+        nom: d.nom,
+        region: d.region,
+        pays: d.pays,
+        lat: d.lat,
+        lon: d.lon,
+        iata: d.iata,
+        transports,
         meilleurTransport,
-        hotel: hotelNuit,
+        hotelNuit,
         hotelTotal,
         nbNuits,
         totalEstime,
+        meteo,
         scoreMeteo: sm,
         scorePrix: sp,
         scoreGlobal: sg,
-        kiwiUrl,
         bookingUrl,
-        omioUrl,
       })
     })
   }
 
   return resultats
-    .filter(r => r.totalEstime <= budget * 1.25)
+    .filter(r => r.totalEstime <= budget * 1.3)
     .sort((a, b) => b.scoreGlobal - a.scoreGlobal)
-    .slice(0, 20)
+    .slice(0, 25)
 }
