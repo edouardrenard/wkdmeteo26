@@ -1,6 +1,6 @@
 {
-  "name": "weekend-meteo",
-  "version": "1.0.0",
+  "name": "weekend-ideal",
+  "version": "3.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
