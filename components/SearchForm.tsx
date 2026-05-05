@@ -3,109 +3,64 @@
 import { useState } from 'react'
 import { SearchParams } from '@/lib/types'
 
-const VILLES = [
-  { label: 'Paris', iata: 'PAR' },
-  { label: 'Lyon', iata: 'LYS' },
-  { label: 'Marseille', iata: 'MRS' },
-  { label: 'Bordeaux', iata: 'BOD' },
-  { label: 'Lille', iata: 'LIL' },
-]
-
-function getOptions() {
-  const options = []
+function getWeekends() {
+  const weekends = []
   const today = new Date()
   const day = today.getDay()
-
-  // Prochain vendredi
-  let nextFri = new Date(today)
-  nextFri.setDate(today.getDate() + ((5 - day + 7) % 7 || 7))
-
-  // Prochain samedi
   let nextSat = new Date(today)
   nextSat.setDate(today.getDate() + ((6 - day + 7) % 7 || 7))
-
-  const fmt = (d: Date) => d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
-
   for (let i = 0; i < 4; i++) {
-    const fri = new Date(nextFri); fri.setDate(nextFri.getDate() + i * 7)
-    const sat = new Date(nextSat); sat.setDate(nextSat.getDate() + i * 7)
-    const sun = new Date(sat);     sun.setDate(sat.getDate() + 1)
-
-    // Option départ samedi (2 nuits)
-    options.push({
-      label: `Sam ${fmt(sat)} – Dim ${fmt(sun)} (2 nuits)`,
-      departDate: sat.toISOString().split('T')[0],
-      retourDate: sun.toISOString().split('T')[0],
-      nbNuits: 1,
-      type: 'weekend',
-    })
-
-    // Option départ vendredi (3 nuits)
-    options.push({
-      label: `Ven ${fmt(fri)} – Dim ${fmt(sun)} (3 nuits)`,
-      departDate: fri.toISOString().split('T')[0],
-      retourDate: sun.toISOString().split('T')[0],
-      nbNuits: 2,
-      type: 'long',
+    const sat = new Date(nextSat)
+    sat.setDate(nextSat.getDate() + i * 7)
+    const fri = new Date(sat)
+    fri.setDate(sat.getDate() - 1)
+    const sun = new Date(sat)
+    sun.setDate(sat.getDate() + 1)
+    const fmt = (d: Date) => d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+    weekends.push({
+      label: `${fmt(sat)} – ${fmt(sun)}`,
+      satDate: sat.toISOString().split('T')[0],
+      sunDate: sun.toISOString().split('T')[0],
+      friDate: fri.toISOString().split('T')[0],
     })
   }
-
-  return options.sort((a, b) => a.departDate.localeCompare(b.departDate))
+  return weekends
 }
 
-export default function SearchForm({
-  onSearch,
-  loading,
-}: {
+export default function SearchForm({ onSearch, loading }: {
   onSearch: (p: SearchParams) => void
   loading: boolean
 }) {
-  const [depart, setDepart] = useState('Paris')
-  const [optionIndex, setOptionIndex] = useState(0)
-  const [budget, setBudget] = useState(400)
-  const [meteoPreference, setMeteoPreference] = useState<'soleil' | 'doux' | 'peu_pluie'>('soleil')
-  const options = getOptions()
+  const [weekendIdx, setWeekendIdx] = useState(0)
+  const [budget, setBudget] = useState(300)
+  const [meteo, setMeteo] = useState<'soleil' | 'doux' | 'peu_pluie'>('soleil')
+  const [vendredi, setVendredi] = useState(false)
+  const weekends = getWeekends()
+  const wk = weekends[weekendIdx]
 
   const handleSubmit = () => {
-    const ville = VILLES.find(v => v.label === depart)!
-    const opt = options[optionIndex]
     onSearch({
-      depart,
-      departIata: ville.iata,
+      departDate: vendredi ? wk.friDate : wk.satDate,
+      retourDate: wk.sunDate,
+      nbNuits: vendredi ? 2 : 1,
       budget,
-      meteoPreference,
-      departDate: opt.departDate,
-      retourDate: opt.retourDate,
-      nbNuits: opt.nbNuits,
-      weekendIndex: optionIndex,
+      meteoPreference: meteo,
+      partirVendredi: vendredi,
     })
   }
 
-  const selectedOpt = options[optionIndex]
-
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 mb-8">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
+    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-6">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
         <div>
-          <label className="block text-xs text-slate-400 mb-2">Ville de départ</label>
+          <label className="block text-xs text-slate-400 mb-2">Weekend</label>
           <select
-            value={depart}
-            onChange={e => setDepart(e.target.value)}
+            value={weekendIdx}
+            onChange={e => setWeekendIdx(Number(e.target.value))}
             className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-500"
           >
-            {VILLES.map(v => <option key={v.label}>{v.label}</option>)}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-xs text-slate-400 mb-2">Dates</label>
-          <select
-            value={optionIndex}
-            onChange={e => setOptionIndex(Number(e.target.value))}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-500"
-          >
-            {options.map((o, i) => (
-              <option key={i} value={i}>{o.label}</option>
+            {weekends.map((w, i) => (
+              <option key={i} value={i}>{w.label}</option>
             ))}
           </select>
         </div>
@@ -113,8 +68,8 @@ export default function SearchForm({
         <div>
           <label className="block text-xs text-slate-400 mb-2">Météo souhaitée</label>
           <select
-            value={meteoPreference}
-            onChange={e => setMeteoPreference(e.target.value as 'soleil' | 'doux' | 'peu_pluie')}
+            value={meteo}
+            onChange={e => setMeteo(e.target.value as 'soleil' | 'doux' | 'peu_pluie')}
             className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-500"
           >
             <option value="soleil">☀️ Soleil / chaud</option>
@@ -125,26 +80,45 @@ export default function SearchForm({
 
         <div>
           <label className="block text-xs text-slate-400 mb-2">
-            Budget total : <span className="text-white font-medium">{budget} €</span>
+            Budget : <span className="text-white font-medium">{budget}€</span>
           </label>
           <input
             type="range" min={100} max={800} step={10} value={budget}
             onChange={e => setBudget(Number(e.target.value))}
-            className="w-full accent-sky-500 mt-1"
+            className="w-full accent-sky-500 mt-2"
           />
           <div className="flex justify-between text-xs text-slate-500 mt-1">
             <span>100€</span><span>800€</span>
           </div>
         </div>
+
+        <div>
+          <label className="block text-xs text-slate-400 mb-2">Options</label>
+          <label className="flex items-center gap-3 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 cursor-pointer hover:border-sky-500 transition-colors">
+            <input
+              type="checkbox"
+              checked={vendredi}
+              onChange={e => setVendredi(e.target.checked)}
+              className="w-4 h-4 accent-sky-500 cursor-pointer"
+            />
+            <div>
+              <p className="text-sm text-white font-medium">Partir vendredi</p>
+              <p className="text-xs text-slate-400">2 nuits au lieu d'1</p>
+            </div>
+          </label>
+        </div>
       </div>
 
-      {/* Résumé du séjour sélectionné */}
-      <div className="bg-slate-800 rounded-xl px-4 py-3 mb-4 flex items-center gap-3 text-sm">
-        <span>{selectedOpt.type === 'long' ? '🗓️' : '📅'}</span>
+      {/* Résumé */}
+      <div className="bg-slate-800 rounded-xl px-4 py-2.5 mb-4 flex items-center gap-2 text-sm">
+        <span>{vendredi ? '🗓️' : '📅'}</span>
         <span className="text-slate-300">
-          {selectedOpt.nbNuits === 1 ? 'Weekend 2 jours' : 'Long weekend 3 jours'} ·{' '}
-          <span className="text-white font-medium">{selectedOpt.nbNuits + 1} jours / {selectedOpt.nbNuits} nuit{selectedOpt.nbNuits > 1 ? 's' : ''}</span> ·{' '}
-          Budget hôtel estimé : <span className="text-sky-400 font-medium">~{selectedOpt.nbNuits} × prix/nuit</span>
+          {vendredi
+            ? `Ven ${new Date(wk.friDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} → Dim ${new Date(wk.sunDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} · `
+            : `Sam ${new Date(wk.satDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} → Dim ${new Date(wk.sunDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} · `
+          }
+          <span className="text-white font-medium">{vendredi ? '2 nuits' : '1 nuit'}</span>
+          {' · '}Budget max : <span className="text-sky-400 font-medium">{budget}€</span>
         </span>
       </div>
 
@@ -153,7 +127,7 @@ export default function SearchForm({
         disabled={loading}
         className="w-full bg-sky-500 hover:bg-sky-400 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-colors text-sm"
       >
-        {loading ? 'Recherche en cours…' : 'Trouver mon weekend idéal →'}
+        {loading ? '🔍 Recherche météo et prix en cours…' : '🗺️ Trouver mon weekend idéal →'}
       </button>
     </div>
   )
