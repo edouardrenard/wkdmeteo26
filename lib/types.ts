@@ -1,16 +1,16 @@
 export interface SearchParams {
-  departDate: string   // date de départ (vendredi ou samedi)
-  retourDate: string   // toujours dimanche
-  nbNuits: number      // 1 (sam-dim) ou 2 (ven-dim)
+  departDate: string
+  retourDate: string
+  nbNuits: number
   budget: number
   meteoPreference: 'soleil' | 'doux' | 'peu_pluie'
   partirVendredi: boolean
 }
 
 export interface Meteo {
-  temp: number    // température moyenne sam+dim
-  pluie: number   // précipitations moyennes sam+dim
-  soleil: number  // heures de soleil moyennes sam+dim
+  temp: number
+  pluie: number
+  soleil: number
 }
 
 export interface Transport {
@@ -22,33 +22,21 @@ export interface Transport {
 }
 
 export interface Destination {
-  // Identité
   nom: string
   region: string
   pays: string
   lat: number
   lon: number
   iata?: string
-
-  // Transports disponibles
   transports: Transport[]
   meilleurTransport: Transport
-
-  // Hébergement
-  hotelNuit: number   // prix moyen par nuit
-  hotelTotal: number  // × nbNuits
-
-  // Total
+  hotelNuit: number
+  hotelTotal: number
+  nbNuits: number
   totalEstime: number
-
-  // Météo
   meteo: Meteo | null
-
-  // Scores
   scoreMeteo: number
   scorePrix: number
   scoreGlobal: number
-
-  // Liens affiliation
   bookingUrl: string
 }
