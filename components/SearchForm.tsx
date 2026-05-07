@@ -18,7 +18,7 @@ function getWeekends() {
     sun.setDate(sat.getDate() + 1)
     const fmt = (d: Date) => d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
     weekends.push({
-      label: `${fmt(sat)} – ${fmt(sun)}`,
+      label: fmt(sat) + ' – ' + fmt(sun),
       satDate: sat.toISOString().split('T')[0],
       sunDate: sun.toISOString().split('T')[0],
       friDate: fri.toISOString().split('T')[0],
@@ -49,6 +49,11 @@ export default function SearchForm({ onSearch, loading }: {
     })
   }
 
+  const onChangeWeekend = (e: React.ChangeEvent<HTMLSelectElement>) => setWeekendIdx(Number(e.currentTarget.value))
+  const onChangeMeteo = (e: React.ChangeEvent<HTMLSelectElement>) => setMeteo(e.currentTarget.value as 'soleil' | 'doux' | 'peu_pluie')
+  const onChangeBudget = (e: React.ChangeEvent<HTMLInputElement>) => setBudget(Number(e.currentTarget.value))
+  const onChangeVendredi = (e: React.ChangeEvent<HTMLInputElement>) => setVendredi(e.currentTarget.checked)
+
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-6">
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
@@ -56,7 +61,7 @@ export default function SearchForm({ onSearch, loading }: {
           <label className="block text-xs text-slate-400 mb-2">Weekend</label>
           <select
             value={weekendIdx}
-            onChange={e => setWeekendIdx(Number(e.target.value))}
+            onChange={onChangeWeekend}
             className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-500"
           >
             {weekends.map((w, i) => (
@@ -69,7 +74,7 @@ export default function SearchForm({ onSearch, loading }: {
           <label className="block text-xs text-slate-400 mb-2">Météo souhaitée</label>
           <select
             value={meteo}
-            onChange={e => setMeteo(e.target.value as 'soleil' | 'doux' | 'peu_pluie')}
+            onChange={onChangeMeteo}
             className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-500"
           >
             <option value="soleil">☀️ Soleil / chaud</option>
@@ -84,7 +89,7 @@ export default function SearchForm({ onSearch, loading }: {
           </label>
           <input
             type="range" min={100} max={800} step={10} value={budget}
-            onChange={e => setBudget(Number(e.target.value))}
+            onChange={onChangeBudget}
             className="w-full accent-sky-500 mt-2"
           />
           <div className="flex justify-between text-xs text-slate-500 mt-1">
@@ -98,24 +103,23 @@ export default function SearchForm({ onSearch, loading }: {
             <input
               type="checkbox"
               checked={vendredi}
-              onChange={e => setVendredi(e.target.checked)}
+              onChange={onChangeVendredi}
               className="w-4 h-4 accent-sky-500 cursor-pointer"
             />
             <div>
               <p className="text-sm text-white font-medium">Partir vendredi</p>
-              <p className="text-xs text-slate-400">2 nuits au lieu d'1</p>
+              <p className="text-xs text-slate-400">2 nuits au lieu d&apos;1</p>
             </div>
           </label>
         </div>
       </div>
 
-      {/* Résumé */}
       <div className="bg-slate-800 rounded-xl px-4 py-2.5 mb-4 flex items-center gap-2 text-sm">
         <span>{vendredi ? '🗓️' : '📅'}</span>
         <span className="text-slate-300">
           {vendredi
-            ? `Ven ${new Date(wk.friDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} → Dim ${new Date(wk.sunDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} · `
-            : `Sam ${new Date(wk.satDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} → Dim ${new Date(wk.sunDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })} · `
+            ? 'Ven ' + new Date(wk.friDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + ' → Dim ' + new Date(wk.sunDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + ' · '
+            : 'Sam ' + new Date(wk.satDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + ' → Dim ' + new Date(wk.sunDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + ' · '
           }
           <span className="text-white font-medium">{vendredi ? '2 nuits' : '1 nuit'}</span>
           {' · '}Budget max : <span className="text-sky-400 font-medium">{budget}€</span>
