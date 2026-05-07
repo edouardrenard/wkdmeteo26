@@ -52,7 +52,7 @@ const DESTINATIONS_BASE = [
   // Corse
   { nom: 'Ajaccio', region: 'Corse', pays: 'France', lat: 41.93, lon: 8.74, iata: 'AJA', distanceKm: 1250, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 95 },
   { nom: 'Bastia', region: 'Corse', pays: 'France', lat: 42.70, lon: 9.45, iata: 'BIA', distanceKm: 1180, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 90 },
-  // Europe — avion (gardées)
+  // Europe — avion
   { nom: 'Lisbonne', region: 'Portugal', pays: 'Portugal', lat: 38.72, lon: -9.14, iata: 'LIS', distanceKm: 1800, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 70 },
   { nom: 'Barcelone', region: 'Catalogne', pays: 'Espagne', lat: 41.39, lon: 2.16, iata: 'BCN', distanceKm: 1100, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 90 },
   { nom: 'Rome', region: 'Latium', pays: 'Italie', lat: 41.90, lon: 12.50, iata: 'FCO', distanceKm: 1400, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 95 },
@@ -100,27 +100,25 @@ async function fetchPrixVol(destIata: string, departDate: string, retourDate: st
   } catch { return null }
 }
 
-// SCORING MÉTÉO — pluie pénalisée fortement
-function scoreMeteo(m: Meteo | null, pref: string): number {
-  if (!m) return 40
+// SCORING MÉTÉO — focus beau temps, ultra strict sur la pluie
+function scoreMeteo(m: Meteo | null): number {
+  if (!m) return 30
   let s = 0
-  if (pref === 'soleil') {
-    // Soleil : max 30 pts
-    s += Math.min(30, m.soleil * 3.5)
-    // Température : max 25 pts
-    s += m.temp >= 24 ? 25 : m.temp >= 20 ? 18 : m.temp >= 16 ? 10 : 0
-    // Pluie : pénalité ULTRA forte (max 45 pts)
-    s += m.pluie === 0 ? 45 : m.pluie < 0.5 ? 35 : m.pluie < 1 ? 22 : m.pluie < 2 ? 10 : m.pluie < 4 ? 3 : 0
-  } else if (pref === 'doux') {
-    s += m.temp >= 16 && m.temp <= 26 ? 30 : m.temp >= 12 ? 18 : 5
-    s += Math.min(25, m.soleil * 3)
-    s += m.pluie < 1 ? 45 : m.pluie < 3 ? 28 : m.pluie < 6 ? 12 : m.pluie < 10 ? 5 : 0
-  } else {
-    // Préférence "peu de pluie" — ultra strict
-    s += m.pluie === 0 ? 60 : m.pluie < 0.5 ? 45 : m.pluie < 1 ? 30 : m.pluie < 2 ? 15 : m.pluie < 4 ? 5 : 0
-    s += m.temp >= 14 ? 25 : m.temp >= 10 ? 15 : 5
-    s += Math.min(15, m.soleil * 1.5)
-  }
+  // Pluie : 50 pts max — ultra pénalisant
+  if (m.pluie === 0) s += 50
+  else if (m.pluie < 0.3) s += 40
+  else if (m.pluie < 1) s += 25
+  else if (m.pluie < 2) s += 12
+  else if (m.pluie < 4) s += 4
+  else s += 0
+  // Soleil : 30 pts max
+  s += Math.min(30, m.soleil * 3.5)
+  // Température : 20 pts max
+  if (m.temp >= 24) s += 20
+  else if (m.temp >= 20) s += 15
+  else if (m.temp >= 16) s += 8
+  else if (m.temp >= 12) s += 3
+  else s += 0
   return Math.min(100, Math.max(0, Math.round(s)))
 }
 
@@ -129,7 +127,6 @@ function scorePrix(meilleurPrix: number, hotelTotal: number, budget: number): nu
   const total = meilleurPrix + hotelTotal
   if (total <= budget * 0.7) return 100
   if (total <= budget) return Math.round(70 + ((budget - total) / (budget * 0.3)) * 30)
-  // Dépassement budget : pénalité progressive
   const depassement = (total - budget) / budget
   if (depassement < 0.1) return 50
   if (depassement < 0.2) return 35
@@ -139,99 +136,10 @@ function scorePrix(meilleurPrix: number, hotelTotal: number, budget: number): nu
 }
 
 export async function searchDestinations(params: SearchParams): Promise<Destination[]> {
-  const { departDate, retourDate, nbNuits, budget, meteoPreference } = params
+  const { departDate, retourDate, nbNuits, budget } = params
 
   const satDate = nbNuits === 1 ? departDate : (() => {
     const d = new Date(departDate); d.setDate(d.getDate() + 1)
     return d.toISOString().split('T')[0]
   })()
-  const sunDate = retourDate
-
-  const resultats: Destination[] = []
-  const BATCH = 4
-
-  for (let i = 0; i < DESTINATIONS_BASE.length; i += BATCH) {
-    const batch = DESTINATIONS_BASE.slice(i, i + BATCH)
-    const fetches = batch.map((dest) => Promise.all([
-      fetchMeteo(dest.lat, dest.lon, satDate, sunDate),
-      dest.trainMin < 500 || !dest.iata ? Promise.resolve(null) : fetchPrixVol(dest.iata, departDate, retourDate),
-    ]))
-    const batchResults = await Promise.all(fetches)
-
-    batch.forEach((d, j) => {
-      const meteo = batchResults[j][0]
-      const prixVol = batchResults[j][1]
-
-      const transports: Transport[] = []
-
-      if (d.trainMin < 500) {
-        const prixTrainAR = Math.round((d.trainMin + d.trainMax) / 2 * 2)
-        transports.push({
-          type: 'train',
-          prixAR: prixTrainAR,
-          source: 'estime',
-          lien: 'https://www.omio.fr/trains/paris/' + encodeURIComponent(d.nom.toLowerCase()) + '?departureDate=' + departDate + '&returnDate=' + retourDate,
-          duree: d.trainDuree,
-        })
-      }
-
-      if (d.distanceKm < 1000) {
-        const prixVoitureAR = Math.round(d.distanceKm * 2 * COUT_KM)
-        transports.push({
-          type: 'voiture',
-          prixAR: prixVoitureAR,
-          source: 'estime',
-          lien: 'https://www.viamichelin.fr/web/itineraires?from=Paris&to=' + encodeURIComponent(d.nom),
-          duree: '~' + Math.round(d.distanceKm / 100) + 'h',
-        })
-      }
-
-      if (d.trainMin >= 500 && d.iata) {
-        const prixAvion = prixVol !== null ? prixVol : Math.round(d.distanceKm * 0.07 + 30)
-        transports.push({
-          type: 'avion',
-          prixAR: prixAvion,
-          source: prixVol !== null ? 'reel' : 'estime',
-          lien: 'https://www.kiwi.com/fr/search/results/Paris/' + encodeURIComponent(d.nom) + '/' + departDate + '/' + retourDate + '?affilid=' + TP_TOKEN,
-        })
-      }
-
-      if (!transports.length) return
-
-      const meilleurTransport = transports.reduce((a, b) => a.prixAR < b.prixAR ? a : b)
-      const hotelNuit = d.hotel
-      const hotelTotal = hotelNuit * nbNuits
-      const totalEstime = meilleurTransport.prixAR + hotelTotal
-      const sm = scoreMeteo(meteo, meteoPreference)
-      const sp = scorePrix(meilleurTransport.prixAR, hotelTotal, budget)
-      // Pondération : 50% météo + 50% prix
-      const sg = Math.round(sm * 0.50 + sp * 0.50)
-      const bookingUrl = 'https://www.booking.com/searchresults.fr.html?ss=' + encodeURIComponent(d.nom) + '&checkin=' + departDate + '&checkout=' + retourDate + '&aid=' + BOOKING_AID
-
-      resultats.push({
-        nom: d.nom,
-        region: d.region,
-        pays: d.pays,
-        lat: d.lat,
-        lon: d.lon,
-        iata: d.iata,
-        transports,
-        meilleurTransport,
-        hotelNuit,
-        hotelTotal,
-        nbNuits,
-        totalEstime,
-        meteo,
-        scoreMeteo: sm,
-        scorePrix: sp,
-        scoreGlobal: sg,
-        bookingUrl,
-      })
-    })
-  }
-
-  // Plus de filtre par budget — on garde tout pour colorier toutes les régions
-  return resultats
-    .sort((a, b) => b.scoreGlobal - a.scoreGlobal)
-    .slice(0, 50)
-}
+  c
