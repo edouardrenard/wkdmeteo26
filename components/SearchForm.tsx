@@ -33,7 +33,6 @@ export default function SearchForm({ onSearch, loading }: {
 }) {
   const [weekendIdx, setWeekendIdx] = useState(0)
   const [budget, setBudget] = useState(300)
-  const [meteo, setMeteo] = useState<'soleil' | 'doux' | 'peu_pluie'>('soleil')
   const [vendredi, setVendredi] = useState(false)
   const weekends = getWeekends()
   const wk = weekends[weekendIdx]
@@ -44,19 +43,17 @@ export default function SearchForm({ onSearch, loading }: {
       retourDate: wk.sunDate,
       nbNuits: vendredi ? 2 : 1,
       budget,
-      meteoPreference: meteo,
       partirVendredi: vendredi,
     })
   }
 
   const onChangeWeekend = (e: React.ChangeEvent<HTMLSelectElement>) => setWeekendIdx(Number(e.currentTarget.value))
-  const onChangeMeteo = (e: React.ChangeEvent<HTMLSelectElement>) => setMeteo(e.currentTarget.value as 'soleil' | 'doux' | 'peu_pluie')
   const onChangeBudget = (e: React.ChangeEvent<HTMLInputElement>) => setBudget(Number(e.currentTarget.value))
   const onChangeVendredi = (e: React.ChangeEvent<HTMLInputElement>) => setVendredi(e.currentTarget.checked)
 
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-6">
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
         <div>
           <label className="block text-xs text-slate-400 mb-2">Weekend</label>
           <select
@@ -67,19 +64,6 @@ export default function SearchForm({ onSearch, loading }: {
             {weekends.map((w, i) => (
               <option key={i} value={i}>{w.label}</option>
             ))}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-xs text-slate-400 mb-2">Météo souhaitée</label>
-          <select
-            value={meteo}
-            onChange={onChangeMeteo}
-            className="w-full bg-slate-800 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-sky-500"
-          >
-            <option value="soleil">☀️ Soleil / chaud</option>
-            <option value="doux">⛅ Doux / nuageux OK</option>
-            <option value="peu_pluie">🌂 Peu de pluie</option>
           </select>
         </div>
 
@@ -100,39 +84,3 @@ export default function SearchForm({ onSearch, loading }: {
         <div>
           <label className="block text-xs text-slate-400 mb-2">Options</label>
           <label className="flex items-center gap-3 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 cursor-pointer hover:border-sky-500 transition-colors">
-            <input
-              type="checkbox"
-              checked={vendredi}
-              onChange={onChangeVendredi}
-              className="w-4 h-4 accent-sky-500 cursor-pointer"
-            />
-            <div>
-              <p className="text-sm text-white font-medium">Partir vendredi</p>
-              <p className="text-xs text-slate-400">2 nuits au lieu d&apos;1</p>
-            </div>
-          </label>
-        </div>
-      </div>
-
-      <div className="bg-slate-800 rounded-xl px-4 py-2.5 mb-4 flex items-center gap-2 text-sm">
-        <span>{vendredi ? '🗓️' : '📅'}</span>
-        <span className="text-slate-300">
-          {vendredi
-            ? 'Ven ' + new Date(wk.friDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + ' → Dim ' + new Date(wk.sunDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + ' · '
-            : 'Sam ' + new Date(wk.satDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + ' → Dim ' + new Date(wk.sunDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) + ' · '
-          }
-          <span className="text-white font-medium">{vendredi ? '2 nuits' : '1 nuit'}</span>
-          {' · '}Budget max : <span className="text-sky-400 font-medium">{budget}€</span>
-        </span>
-      </div>
-
-      <button
-        onClick={handleSubmit}
-        disabled={loading}
-        className="w-full bg-sky-500 hover:bg-sky-400 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-colors text-sm"
-      >
-        {loading ? '🔍 Recherche météo et prix en cours…' : '🗺️ Trouver mon weekend idéal →'}
-      </button>
-    </div>
-  )
-}
