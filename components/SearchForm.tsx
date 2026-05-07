@@ -27,10 +27,7 @@ function getWeekends() {
   return weekends
 }
 
-export default function SearchForm({ onSearch, loading }: {
-  onSearch: (p: SearchParams) => void
-  loading: boolean
-}) {
+export default function SearchForm(props: { onSearch: (p: SearchParams) => void; loading: boolean }) {
   const [weekendIdx, setWeekendIdx] = useState(0)
   const [budget, setBudget] = useState(300)
   const [vendredi, setVendredi] = useState(false)
@@ -38,7 +35,7 @@ export default function SearchForm({ onSearch, loading }: {
   const wk = weekends[weekendIdx]
 
   const handleSubmit = () => {
-    onSearch({
+    props.onSearch({
       departDate: vendredi ? wk.friDate : wk.satDate,
       retourDate: wk.sunDate,
       nbNuits: vendredi ? 2 : 1,
@@ -50,6 +47,11 @@ export default function SearchForm({ onSearch, loading }: {
   const onChangeWeekend = (e: React.ChangeEvent<HTMLSelectElement>) => setWeekendIdx(Number(e.currentTarget.value))
   const onChangeBudget = (e: React.ChangeEvent<HTMLInputElement>) => setBudget(Number(e.currentTarget.value))
   const onChangeVendredi = (e: React.ChangeEvent<HTMLInputElement>) => setVendredi(e.currentTarget.checked)
+
+  const fmtDate = (s: string) => new Date(s).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
+  const resumeText = vendredi
+    ? 'Ven ' + fmtDate(wk.friDate) + ' → Dim ' + fmtDate(wk.sunDate)
+    : 'Sam ' + fmtDate(wk.satDate) + ' → Dim ' + fmtDate(wk.sunDate)
 
   return (
     <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 mb-6">
@@ -84,3 +86,38 @@ export default function SearchForm({ onSearch, loading }: {
         <div>
           <label className="block text-xs text-slate-400 mb-2">Options</label>
           <label className="flex items-center gap-3 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2.5 cursor-pointer hover:border-sky-500 transition-colors">
+            <input
+              type="checkbox"
+              checked={vendredi}
+              onChange={onChangeVendredi}
+              className="w-4 h-4 accent-sky-500 cursor-pointer"
+            />
+            <div>
+              <p className="text-sm text-white font-medium">Partir vendredi</p>
+              <p className="text-xs text-slate-400">2 nuits au lieu d&apos;1</p>
+            </div>
+          </label>
+        </div>
+      </div>
+
+      <div className="bg-slate-800 rounded-xl px-4 py-2.5 mb-4 flex items-center gap-2 text-sm">
+        <span>{vendredi ? '🗓️' : '📅'}</span>
+        <span className="text-slate-300">
+          {resumeText}
+          {' · '}
+          <span className="text-white font-medium">{vendredi ? '2 nuits' : '1 nuit'}</span>
+          {' · Budget max : '}
+          <span className="text-sky-400 font-medium">{budget}€</span>
+        </span>
+      </div>
+
+      <button
+        onClick={handleSubmit}
+        disabled={props.loading}
+        className="w-full bg-sky-500 hover:bg-sky-400 disabled:opacity-50 disabled:cursor-not-allowed text-white font-semibold py-3 rounded-xl transition-colors text-sm"
+      >
+        {props.loading ? '🔍 Recherche en cours…' : '☀️ Trouver mon weekend ensoleillé →'}
+      </button>
+    </div>
+  )
+}
