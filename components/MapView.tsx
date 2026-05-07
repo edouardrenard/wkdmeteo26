@@ -11,13 +11,15 @@ interface Props {
 const GEOJSON_URL = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions.geojson'
 
 function scoreToColor(score: number): string {
-  if (score >= 80) return '#10B981'
-  if (score >= 70) return '#34D399'
-  if (score >= 60) return '#FBBF24'
-  if (score >= 50) return '#F59E0B'
-  if (score >= 40) return '#F97316'
-  if (score >= 30) return '#EF4444'
-  return '#94A3B8'
+  if (score >= 85) return '#059669'  // vert très foncé
+  if (score >= 75) return '#10B981'  // vert
+  if (score >= 65) return '#34D399'  // vert clair
+  if (score >= 55) return '#FBBF24'  // jaune
+  if (score >= 45) return '#F59E0B'  // orange clair
+  if (score >= 35) return '#F97316'  // orange
+  if (score >= 25) return '#EF4444'  // rouge
+  if (score >= 15) return '#DC2626'  // rouge foncé
+  return '#7F1D1D'  // bordeaux
 }
 
 function tIcon(type: string): string {
@@ -196,13 +198,14 @@ export default function MapView({ results, loading }: Props) {
       <div className="absolute top-3 left-3 z-[1000] bg-slate-900/95 backdrop-blur-sm border border-slate-700 rounded-xl p-3 text-xs">
         <p className="font-semibold text-slate-200 mb-2">Score régional moyen</p>
         {[
-          { color: '#10B981', label: '80+ Excellent' },
-          { color: '#34D399', label: '70–79 Très bon' },
-          { color: '#FBBF24', label: '60–69 Bon' },
-          { color: '#F59E0B', label: '50–59 Correct' },
-          { color: '#F97316', label: '40–49 Faible' },
-          { color: '#EF4444', label: '< 40 Mauvais' },
-        ].map(({ color, label }) => (
+  { color: '#059669', label: '85+ Parfait' },
+  { color: '#10B981', label: '75–84 Excellent' },
+  { color: '#34D399', label: '65–74 Très bon' },
+  { color: '#FBBF24', label: '55–64 Bon' },
+  { color: '#F59E0B', label: '45–54 Moyen' },
+  { color: '#F97316', label: '35–44 Faible' },
+  { color: '#EF4444', label: '< 35 Mauvais' },
+].map(({ color, label }) => (
           <div key={label} className="flex items-center gap-2 mb-1">
             <div className="w-3 h-3 rounded-sm" style={{ background: color }} />
             <span className="text-slate-400">{label}</span>
