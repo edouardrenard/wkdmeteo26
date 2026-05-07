@@ -13,10 +13,10 @@ function tLabel(type: string) {
 function TransportRow({ t }: { t: Transport }) {
   return (
     <div className="flex justify-between text-xs">
-      <span className="text-slate-400">{tIcon(t.type)} {tLabel(t.type)} A/R{t.duree ? ` (${t.duree})` : ''}</span>
+      <span className="text-slate-400">{tIcon(t.type)} {tLabel(t.type)} A/R{t.duree ? ' (' + t.duree + ')' : ''}</span>
       <span className="text-white font-medium">
         ~{t.prixAR}€{' '}
-        <span className={`text-xs ${t.source === 'reel' ? 'text-emerald-400' : 'text-slate-500'}`}>
+        <span className={'text-xs ' + (t.source === 'reel' ? 'text-emerald-400' : 'text-slate-500')}>
           {t.source === 'reel' ? '● réel' : '● estimé'}
         </span>
       </span>
@@ -32,7 +32,7 @@ function TransportBtn({ t }: { t: Transport }) {
     : 'bg-sky-500/10 hover:bg-sky-500/20 text-sky-400 border-sky-500/20'
   return (
     <a href={t.lien} target="_blank" rel="noopener noreferrer"
-      className={`flex-1 text-center text-xs py-2 px-2 rounded-lg border transition-colors ${cls}`}>
+      className={'flex-1 text-center text-xs py-2 px-2 rounded-lg border transition-colors ' + cls}>
       {tIcon(t.type)} {tLabel(t.type)} ↗
     </a>
   )
@@ -49,14 +49,14 @@ function Card({ dest, index }: { dest: Destination, index: number }) {
     : dest.totalEstime <= 400 ? 'text-sky-400' : 'text-amber-400'
 
   return (
-    <div className={`bg-slate-900 rounded-2xl p-5 border ${index === 0 ? 'border-sky-500' : 'border-slate-800'} hover:border-slate-600 transition-colors`}>
+    <div className={'bg-slate-900 rounded-2xl p-5 border ' + (index === 0 ? 'border-sky-500' : 'border-slate-800') + ' hover:border-slate-600 transition-colors'}>
       {index === 0 && <span className="inline-block text-xs bg-sky-500/20 text-sky-400 px-2 py-0.5 rounded-full mb-3">Meilleur score</span>}
       <div className="flex items-start justify-between gap-3 mb-3">
         <div>
           <h3 className="text-base font-semibold">{tIcon(dest.meilleurTransport.type)} {dest.nom}</h3>
           <p className="text-sm text-slate-400">{dest.region}</p>
         </div>
-        <div className={`w-14 h-14 rounded-full flex flex-col items-center justify-center flex-shrink-0 ${sc}`}>
+        <div className={'w-14 h-14 rounded-full flex flex-col items-center justify-center flex-shrink-0 ' + sc}>
           <span className="text-lg font-bold leading-none">{dest.scoreGlobal}</span>
           <span className="text-xs opacity-70">score</span>
         </div>
@@ -76,21 +76,21 @@ function Card({ dest, index }: { dest: Destination, index: number }) {
         </div>
         <div className="border-t border-slate-700 pt-2 flex justify-between text-sm">
           <span className="text-slate-300 font-medium">Total estimé</span>
-          <span className={`font-bold ${tc}`}>~{dest.totalEstime}€</span>
+          <span className={'font-bold ' + tc}>~{dest.totalEstime}€</span>
         </div>
       </div>
       <div className="space-y-1.5 mb-4">
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-500 w-10">Météo</span>
           <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-            <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${dest.scoreMeteo}%` }} />
+            <div className="h-full bg-emerald-500 rounded-full" style={{ width: dest.scoreMeteo + '%' }} />
           </div>
           <span className="text-xs text-slate-500 w-6 text-right">{dest.scoreMeteo}</span>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-slate-500 w-10">Prix</span>
           <div className="flex-1 h-1.5 bg-slate-700 rounded-full overflow-hidden">
-            <div className="h-full bg-sky-500 rounded-full" style={{ width: `${dest.scorePrix}%` }} />
+            <div className="h-full bg-sky-500 rounded-full" style={{ width: dest.scorePrix + '%' }} />
           </div>
           <span className="text-xs text-slate-500 w-6 text-right">{dest.scorePrix}</span>
         </div>
@@ -128,13 +128,14 @@ export default function ResultsGrid({ results, loading }: { results: Destination
       <div className="text-center py-16 text-slate-400">
         <div className="text-4xl mb-3">🗺️</div>
         <p className="text-lg font-medium mb-1">Aucune destination trouvée</p>
-        <p className="text-sm">Essaie d'augmenter ton budget ou de changer les critères.</p>
+        <p className="text-sm">Essaie d&apos;augmenter ton budget ou de changer les critères.</p>
       </div>
     )
   }
+  const cards = results.map((d, i) => <Card key={d.nom + i} dest={d} index={i} />)
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {results.map((d, i) => <Card key={d.nom + i} dest={d} index={i} />)}
+      {cards}
     </div>
   )
 }
