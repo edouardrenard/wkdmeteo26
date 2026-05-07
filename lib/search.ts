@@ -105,21 +105,21 @@ function scoreMeteo(m: Meteo | null, pref: string): number {
   if (!m) return 40
   let s = 0
   if (pref === 'soleil') {
-    // Soleil : max 35 pts
-    s += Math.min(35, m.soleil * 4)
-    // Température : max 30 pts
-    s += m.temp >= 24 ? 30 : m.temp >= 20 ? 22 : m.temp >= 16 ? 12 : 0
-    // Pluie : pénalité forte (max 35 pts mais facile à perdre)
-    s += m.pluie === 0 ? 35 : m.pluie < 1 ? 25 : m.pluie < 2 ? 15 : m.pluie < 4 ? 5 : 0
+    // Soleil : max 30 pts
+    s += Math.min(30, m.soleil * 3.5)
+    // Température : max 25 pts
+    s += m.temp >= 24 ? 25 : m.temp >= 20 ? 18 : m.temp >= 16 ? 10 : 0
+    // Pluie : pénalité ULTRA forte (max 45 pts)
+    s += m.pluie === 0 ? 45 : m.pluie < 0.5 ? 35 : m.pluie < 1 ? 22 : m.pluie < 2 ? 10 : m.pluie < 4 ? 3 : 0
   } else if (pref === 'doux') {
-    s += m.temp >= 16 && m.temp <= 26 ? 35 : m.temp >= 12 ? 22 : 8
-    s += Math.min(30, m.soleil * 3)
-    s += m.pluie < 2 ? 35 : m.pluie < 5 ? 22 : m.pluie < 10 ? 10 : 0
+    s += m.temp >= 16 && m.temp <= 26 ? 30 : m.temp >= 12 ? 18 : 5
+    s += Math.min(25, m.soleil * 3)
+    s += m.pluie < 1 ? 45 : m.pluie < 3 ? 28 : m.pluie < 6 ? 12 : m.pluie < 10 ? 5 : 0
   } else {
-    // Préférence "peu de pluie" — pluie ultra pénalisante
-    s += m.pluie === 0 ? 55 : m.pluie < 1 ? 40 : m.pluie < 2 ? 25 : m.pluie < 5 ? 10 : 0
+    // Préférence "peu de pluie" — ultra strict
+    s += m.pluie === 0 ? 60 : m.pluie < 0.5 ? 45 : m.pluie < 1 ? 30 : m.pluie < 2 ? 15 : m.pluie < 4 ? 5 : 0
     s += m.temp >= 14 ? 25 : m.temp >= 10 ? 15 : 5
-    s += Math.min(20, m.soleil * 2)
+    s += Math.min(15, m.soleil * 1.5)
   }
   return Math.min(100, Math.max(0, Math.round(s)))
 }
