@@ -3,7 +3,6 @@ export interface SearchParams {
   retourDate: string
   nbNuits: number
   budget: number
-  meteoPreference: 'soleil' | 'doux' | 'peu_pluie'
   partirVendredi: boolean
 }
 
