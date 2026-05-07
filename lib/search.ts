@@ -3,12 +3,9 @@ import { Destination, Meteo, SearchParams, Transport } from './types'
 const TP_TOKEN = '74f9e5198dc096bdda20fec145988527'
 const BOOKING_AID = '397594'
 
-// Coût voiture au km (barème fiscal 2024, véhicule 5CV)
 const COUT_KM = 0.21
 
-// Destinations avec distances depuis Paris en km
 const DESTINATIONS_BASE = [
-  // France — train + voiture
   { nom: 'Lyon', region: 'Auvergne-Rhône-Alpes', pays: 'France', lat: 45.75, lon: 4.85, iata: 'LYS', distanceKm: 465, trainMin: 19, trainMax: 89, trainDuree: '2h', hotel: 85 },
   { nom: 'Marseille', region: 'Provence-Alpes-Côte d\'Azur', pays: 'France', lat: 43.30, lon: 5.38, iata: 'MRS', distanceKm: 775, trainMin: 19, trainMax: 109, trainDuree: '3h20', hotel: 80 },
   { nom: 'Nice', region: 'Provence-Alpes-Côte d\'Azur', pays: 'France', lat: 43.71, lon: 7.26, iata: 'NCE', distanceKm: 930, trainMin: 29, trainMax: 129, trainDuree: '5h30', hotel: 90 },
@@ -24,7 +21,6 @@ const DESTINATIONS_BASE = [
   { nom: 'Nîmes', region: 'Occitanie', pays: 'France', lat: 43.84, lon: 4.36, iata: 'NIM', distanceKm: 720, trainMin: 19, trainMax: 89, trainDuree: '2h50', hotel: 65 },
   { nom: 'Biarritz', region: 'Nouvelle-Aquitaine', pays: 'France', lat: 43.48, lon: -1.56, iata: 'BIQ', distanceKm: 760, trainMin: 29, trainMax: 99, trainDuree: '4h30', hotel: 90 },
   { nom: 'Annecy', region: 'Auvergne-Rhône-Alpes', pays: 'France', lat: 45.90, lon: 6.12, iata: 'NCY', distanceKm: 545, trainMin: 24, trainMax: 79, trainDuree: '3h30', hotel: 85 },
-  // Europe — avion
   { nom: 'Lisbonne', region: 'Portugal', pays: 'Portugal', lat: 38.72, lon: -9.14, iata: 'LIS', distanceKm: 1800, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 70 },
   { nom: 'Barcelone', region: 'Catalogne', pays: 'Espagne', lat: 41.39, lon: 2.16, iata: 'BCN', distanceKm: 1100, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 90 },
   { nom: 'Rome', region: 'Latium', pays: 'Italie', lat: 41.90, lon: 12.50, iata: 'FCO', distanceKm: 1400, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 95 },
@@ -37,17 +33,21 @@ const DESTINATIONS_BASE = [
   { nom: 'Madrid', region: 'Castille', pays: 'Espagne', lat: 40.42, lon: -3.70, iata: 'MAD', distanceKm: 1300, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 75 },
 ]
 
-async function fetchMeteo(lat: number, lon: number, satDate: string, sunDate: string): Promise<Meteo | null> {
+async function fetchMeteo(latitude: number, longitude: number, satDate: string, sunDate: string): Promise<Meteo | null> {
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,precipitation_sum,sunshine_duration&timezone=Europe%2FParis&start_date=${satDate}&end_date=${sunDate}`
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,precipitation_sum,sunshine_duration&timezone=Europe%2FParis&start_date=${satDate}&end_date=${sunDate}`
     const r = await fetch(url)
-    const d = await r.json()
-    if (!d.daily?.temperature_2m_max?.length) return null
-    const n = d.daily.temperature_2m_max.length
+    const json = await r.json()
+    const daily = json.daily
+    if (!daily || !daily.temperature_2m_max || !daily.temperature_2m_max.length) return null
+    const n = daily.temperature_2m_max.length
+    const sumTemp = daily.temperature_2m_max.reduce((a: number, b: number) => a + b, 0)
+    const sumPluie = daily.precipitation_sum.reduce((a: number, b: number) => a + b, 0)
+    const sumSoleil = daily.sunshine_duration.reduce((a: number, b: number) => a + b, 0)
     return {
-      temp: Math.round(d.daily.temperature_2m_max.reduce((a: number, b: number) => a + b, 0) / n),
-      pluie: Math.round(d.daily.precipitation_sum.reduce((a: number, b: number) => a + b, 0) / n * 10) / 10,
-      soleil: Math.round(d.daily.sunshine_duration.reduce((a: number, b: number) => a + b, 0) / n / 3600),
+      temp: Math.round(sumTemp / n),
+      pluie: Math.round((sumPluie / n) * 10) / 10,
+      soleil: Math.round((sumSoleil / n) / 3600),
     }
   } catch { return null }
 }
@@ -58,9 +58,12 @@ async function fetchPrixVol(destIata: string, departDate: string, retourDate: st
       fetch(`https://api.travelpayouts.com/v2/prices/latest?origin=PAR&destination=${destIata}&depart_date=${departDate}&currency=eur&one_way=true&token=${TP_TOKEN}`),
       fetch(`https://api.travelpayouts.com/v2/prices/latest?origin=${destIata}&destination=PAR&depart_date=${retourDate}&currency=eur&one_way=true&token=${TP_TOKEN}`)
     ])
-    const [d1, d2] = await Promise.all([r1.json(), r2.json()])
-    const aller = d1.success && d1.data?.length ? Math.min(...d1.data.slice(0,3).map((v: any) => v.value)) : null
-    const retour = d2.success && d2.data?.length ? Math.min(...d2.data.slice(0,3).map((v: any) => v.value)) : null
+    const j1 = await r1.json()
+    const j2 = await r2.json()
+    const arr1 = j1.success && j1.data && j1.data.length ? j1.data.slice(0, 3).map((v: any) => v.value) : []
+    const arr2 = j2.success && j2.data && j2.data.length ? j2.data.slice(0, 3).map((v: any) => v.value) : []
+    const aller = arr1.length ? Math.min(...arr1) : null
+    const retour = arr2.length ? Math.min(...arr2) : null
     if (!aller && !retour) return null
     return Math.round((aller || 0) + (retour || 0))
   } catch { return null }
@@ -94,7 +97,6 @@ function scorePrix(meilleurPrix: number, hotelTotal: number, budget: number): nu
 export async function searchDestinations(params: SearchParams): Promise<Destination[]> {
   const { departDate, retourDate, nbNuits, budget, meteoPreference } = params
 
-  // Dates météo : toujours sam + dim
   const satDate = nbNuits === 1 ? departDate : (() => {
     const d = new Date(departDate); d.setDate(d.getDate() + 1)
     return d.toISOString().split('T')[0]
@@ -106,18 +108,18 @@ export async function searchDestinations(params: SearchParams): Promise<Destinat
 
   for (let i = 0; i < DESTINATIONS_BASE.length; i += BATCH) {
     const batch = DESTINATIONS_BASE.slice(i, i + BATCH)
-    const fetches = batch.map(d => Promise.all([
-      fetchMeteo(d.lat, d.lon, satDate, sunDate),
-      d.trainMin < 500 ? Promise.resolve(null) : fetchPrixVol(d.iata!, departDate, retourDate),
+    const fetches = batch.map((dest) => Promise.all([
+      fetchMeteo(dest.lat, dest.lon, satDate, sunDate),
+      dest.trainMin < 500 ? Promise.resolve(null) : fetchPrixVol(dest.iata, departDate, retourDate),
     ]))
     const batchResults = await Promise.all(fetches)
 
     batch.forEach((d, j) => {
-      const [meteo, prixVol] = batchResults[j]
+      const meteo = batchResults[j][0]
+      const prixVol = batchResults[j][1]
 
       const transports: Transport[] = []
 
-      // Train (destinations françaises)
       if (d.trainMin < 500) {
         const prixTrainAR = Math.round((d.trainMin + d.trainMax) / 2 * 2)
         transports.push({
@@ -129,7 +131,6 @@ export async function searchDestinations(params: SearchParams): Promise<Destinat
         })
       }
 
-      // Voiture (toutes destinations < 1000km)
       if (d.distanceKm < 1000) {
         const prixVoitureAR = Math.round(d.distanceKm * 2 * COUT_KM)
         transports.push({
@@ -141,30 +142,25 @@ export async function searchDestinations(params: SearchParams): Promise<Destinat
         })
       }
 
-      // Avion (destinations européennes)
       if (d.trainMin >= 500) {
-        const prixAvion = prixVol ?? Math.round(d.distanceKm * 0.07 + 30)
+        const prixAvion = prixVol !== null ? prixVol : Math.round(d.distanceKm * 0.07 + 30)
         transports.push({
           type: 'avion',
           prixAR: prixAvion,
-          source: prixVol ? 'reel' : 'estime',
+          source: prixVol !== null ? 'reel' : 'estime',
           lien: `https://www.kiwi.com/fr/search/results/Paris/${encodeURIComponent(d.nom)}/${departDate}/${retourDate}?affilid=${TP_TOKEN}`,
         })
       }
 
       if (!transports.length) return
 
-      // Meilleur transport = le moins cher
       const meilleurTransport = transports.reduce((a, b) => a.prixAR < b.prixAR ? a : b)
-
       const hotelNuit = d.hotel
       const hotelTotal = hotelNuit * nbNuits
       const totalEstime = meilleurTransport.prixAR + hotelTotal
-
       const sm = scoreMeteo(meteo, meteoPreference)
       const sp = scorePrix(meilleurTransport.prixAR, hotelTotal, budget)
       const sg = Math.round(sm * 0.55 + sp * 0.45)
-
       const bookingUrl = `https://www.booking.com/searchresults.fr.html?ss=${encodeURIComponent(d.nom)}&checkin=${departDate}&checkout=${retourDate}&aid=${BOOKING_AID}`
 
       resultats.push({
