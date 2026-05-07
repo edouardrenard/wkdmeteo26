@@ -11,15 +11,15 @@ interface Props {
 const GEOJSON_URL = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions.geojson'
 
 function scoreToColor(score: number): string {
-  if (score >= 85) return '#059669'  // vert très foncé
-  if (score >= 75) return '#10B981'  // vert
-  if (score >= 65) return '#34D399'  // vert clair
-  if (score >= 55) return '#FBBF24'  // jaune
-  if (score >= 45) return '#F59E0B'  // orange clair
-  if (score >= 35) return '#F97316'  // orange
-  if (score >= 25) return '#EF4444'  // rouge
-  if (score >= 15) return '#DC2626'  // rouge foncé
-  return '#7F1D1D'  // bordeaux
+  if (score >= 85) return '#059669'
+  if (score >= 75) return '#10B981'
+  if (score >= 65) return '#34D399'
+  if (score >= 55) return '#FBBF24'
+  if (score >= 45) return '#F59E0B'
+  if (score >= 35) return '#F97316'
+  if (score >= 25) return '#EF4444'
+  if (score >= 15) return '#DC2626'
+  return '#7F1D1D'
 }
 
 function tIcon(type: string): string {
