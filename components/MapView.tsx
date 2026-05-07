@@ -8,7 +8,7 @@ interface Props {
   loading: boolean
 }
 
-const GEOJSON_URL = 'https://france-geojson.gregoiredavid.fr/repo/regions.geojson'
+const GEOJSON_URL = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions.geojson'
 
 function scoreToColor(score: number): string {
   if (score >= 80) return '#10B981'
