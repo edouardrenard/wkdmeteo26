@@ -6,21 +6,53 @@ const BOOKING_AID = '397594'
 const COUT_KM = 0.21
 
 const DESTINATIONS_BASE = [
+  // Auvergne-Rhône-Alpes
   { nom: 'Lyon', region: 'Auvergne-Rhône-Alpes', pays: 'France', lat: 45.75, lon: 4.85, iata: 'LYS', distanceKm: 465, trainMin: 19, trainMax: 89, trainDuree: '2h', hotel: 85 },
+  { nom: 'Annecy', region: 'Auvergne-Rhône-Alpes', pays: 'France', lat: 45.90, lon: 6.12, iata: 'NCY', distanceKm: 545, trainMin: 24, trainMax: 79, trainDuree: '3h30', hotel: 85 },
+  { nom: 'Clermont-Ferrand', region: 'Auvergne-Rhône-Alpes', pays: 'France', lat: 45.78, lon: 3.08, iata: 'CFE', distanceKm: 425, trainMin: 19, trainMax: 69, trainDuree: '3h30', hotel: 65 },
+  // Provence-Alpes-Côte d'Azur
   { nom: 'Marseille', region: 'Provence-Alpes-Côte d\'Azur', pays: 'France', lat: 43.30, lon: 5.38, iata: 'MRS', distanceKm: 775, trainMin: 19, trainMax: 109, trainDuree: '3h20', hotel: 80 },
   { nom: 'Nice', region: 'Provence-Alpes-Côte d\'Azur', pays: 'France', lat: 43.71, lon: 7.26, iata: 'NCE', distanceKm: 930, trainMin: 29, trainMax: 129, trainDuree: '5h30', hotel: 90 },
-  { nom: 'Bordeaux', region: 'Nouvelle-Aquitaine', pays: 'France', lat: 44.84, lon: -0.58, iata: 'BOD', distanceKm: 580, trainMin: 19, trainMax: 79, trainDuree: '2h', hotel: 80 },
-  { nom: 'Toulouse', region: 'Occitanie', pays: 'France', lat: 43.60, lon: 1.44, iata: 'TLS', distanceKm: 680, trainMin: 19, trainMax: 89, trainDuree: '4h20', hotel: 75 },
-  { nom: 'Nantes', region: 'Pays de la Loire', pays: 'France', lat: 47.22, lon: -1.55, iata: 'NTE', distanceKm: 385, trainMin: 19, trainMax: 79, trainDuree: '2h10', hotel: 75 },
-  { nom: 'Strasbourg', region: 'Grand Est', pays: 'France', lat: 48.58, lon: 7.75, iata: 'SXB', distanceKm: 490, trainMin: 19, trainMax: 79, trainDuree: '1h50', hotel: 80 },
-  { nom: 'Dijon', region: 'Bourgogne-Franche-Comté', pays: 'France', lat: 47.32, lon: 5.04, iata: 'DIJ', distanceKm: 310, trainMin: 14, trainMax: 59, trainDuree: '1h35', hotel: 65 },
-  { nom: 'Lille', region: 'Hauts-de-France', pays: 'France', lat: 50.63, lon: 3.07, iata: 'LIL', distanceKm: 220, trainMin: 14, trainMax: 59, trainDuree: '1h', hotel: 75 },
-  { nom: 'Montpellier', region: 'Occitanie', pays: 'France', lat: 43.61, lon: 3.88, iata: 'MPL', distanceKm: 750, trainMin: 19, trainMax: 99, trainDuree: '3h20', hotel: 75 },
-  { nom: 'Rennes', region: 'Bretagne', pays: 'France', lat: 48.11, lon: -1.68, iata: 'RNS', distanceKm: 350, trainMin: 19, trainMax: 69, trainDuree: '2h05', hotel: 70 },
   { nom: 'Avignon', region: 'Provence-Alpes-Côte d\'Azur', pays: 'France', lat: 43.95, lon: 4.81, iata: 'AVN', distanceKm: 690, trainMin: 19, trainMax: 79, trainDuree: '2h40', hotel: 70 },
-  { nom: 'Nîmes', region: 'Occitanie', pays: 'France', lat: 43.84, lon: 4.36, iata: 'NIM', distanceKm: 720, trainMin: 19, trainMax: 89, trainDuree: '2h50', hotel: 65 },
+  // Nouvelle-Aquitaine
+  { nom: 'Bordeaux', region: 'Nouvelle-Aquitaine', pays: 'France', lat: 44.84, lon: -0.58, iata: 'BOD', distanceKm: 580, trainMin: 19, trainMax: 79, trainDuree: '2h', hotel: 80 },
   { nom: 'Biarritz', region: 'Nouvelle-Aquitaine', pays: 'France', lat: 43.48, lon: -1.56, iata: 'BIQ', distanceKm: 760, trainMin: 29, trainMax: 99, trainDuree: '4h30', hotel: 90 },
-  { nom: 'Annecy', region: 'Auvergne-Rhône-Alpes', pays: 'France', lat: 45.90, lon: 6.12, iata: 'NCY', distanceKm: 545, trainMin: 24, trainMax: 79, trainDuree: '3h30', hotel: 85 },
+  { nom: 'La Rochelle', region: 'Nouvelle-Aquitaine', pays: 'France', lat: 46.16, lon: -1.15, iata: 'LRH', distanceKm: 470, trainMin: 19, trainMax: 79, trainDuree: '3h', hotel: 75 },
+  // Occitanie
+  { nom: 'Toulouse', region: 'Occitanie', pays: 'France', lat: 43.60, lon: 1.44, iata: 'TLS', distanceKm: 680, trainMin: 19, trainMax: 89, trainDuree: '4h20', hotel: 75 },
+  { nom: 'Montpellier', region: 'Occitanie', pays: 'France', lat: 43.61, lon: 3.88, iata: 'MPL', distanceKm: 750, trainMin: 19, trainMax: 99, trainDuree: '3h20', hotel: 75 },
+  { nom: 'Nîmes', region: 'Occitanie', pays: 'France', lat: 43.84, lon: 4.36, iata: 'NIM', distanceKm: 720, trainMin: 19, trainMax: 89, trainDuree: '2h50', hotel: 65 },
+  // Pays de la Loire
+  { nom: 'Nantes', region: 'Pays de la Loire', pays: 'France', lat: 47.22, lon: -1.55, iata: 'NTE', distanceKm: 385, trainMin: 19, trainMax: 79, trainDuree: '2h10', hotel: 75 },
+  { nom: 'Le Mans', region: 'Pays de la Loire', pays: 'France', lat: 47.99, lon: 0.20, iata: '', distanceKm: 210, trainMin: 19, trainMax: 49, trainDuree: '1h', hotel: 65 },
+  // Grand Est
+  { nom: 'Strasbourg', region: 'Grand Est', pays: 'France', lat: 48.58, lon: 7.75, iata: 'SXB', distanceKm: 490, trainMin: 19, trainMax: 79, trainDuree: '1h50', hotel: 80 },
+  { nom: 'Reims', region: 'Grand Est', pays: 'France', lat: 49.26, lon: 4.03, iata: '', distanceKm: 145, trainMin: 14, trainMax: 49, trainDuree: '45min', hotel: 75 },
+  { nom: 'Nancy', region: 'Grand Est', pays: 'France', lat: 48.69, lon: 6.18, iata: '', distanceKm: 305, trainMin: 19, trainMax: 69, trainDuree: '1h30', hotel: 70 },
+  // Bourgogne-Franche-Comté
+  { nom: 'Dijon', region: 'Bourgogne-Franche-Comté', pays: 'France', lat: 47.32, lon: 5.04, iata: 'DIJ', distanceKm: 310, trainMin: 14, trainMax: 59, trainDuree: '1h35', hotel: 65 },
+  { nom: 'Besançon', region: 'Bourgogne-Franche-Comté', pays: 'France', lat: 47.24, lon: 6.02, iata: '', distanceKm: 405, trainMin: 19, trainMax: 69, trainDuree: '2h05', hotel: 65 },
+  // Hauts-de-France
+  { nom: 'Lille', region: 'Hauts-de-France', pays: 'France', lat: 50.63, lon: 3.07, iata: 'LIL', distanceKm: 220, trainMin: 14, trainMax: 59, trainDuree: '1h', hotel: 75 },
+  { nom: 'Amiens', region: 'Hauts-de-France', pays: 'France', lat: 49.89, lon: 2.30, iata: '', distanceKm: 135, trainMin: 14, trainMax: 39, trainDuree: '1h10', hotel: 60 },
+  // Bretagne
+  { nom: 'Rennes', region: 'Bretagne', pays: 'France', lat: 48.11, lon: -1.68, iata: 'RNS', distanceKm: 350, trainMin: 19, trainMax: 69, trainDuree: '2h05', hotel: 70 },
+  { nom: 'Brest', region: 'Bretagne', pays: 'France', lat: 48.39, lon: -4.49, iata: 'BES', distanceKm: 595, trainMin: 29, trainMax: 89, trainDuree: '4h', hotel: 70 },
+  { nom: 'Saint-Malo', region: 'Bretagne', pays: 'France', lat: 48.65, lon: -2.03, iata: '', distanceKm: 410, trainMin: 24, trainMax: 79, trainDuree: '2h45', hotel: 80 },
+  // Centre-Val de Loire
+  { nom: 'Tours', region: 'Centre-Val de Loire', pays: 'France', lat: 47.39, lon: 0.69, iata: '', distanceKm: 240, trainMin: 19, trainMax: 49, trainDuree: '1h10', hotel: 70 },
+  { nom: 'Orléans', region: 'Centre-Val de Loire', pays: 'France', lat: 47.90, lon: 1.91, iata: '', distanceKm: 130, trainMin: 14, trainMax: 35, trainDuree: '1h', hotel: 65 },
+  // Normandie
+  { nom: 'Rouen', region: 'Normandie', pays: 'France', lat: 49.44, lon: 1.10, iata: '', distanceKm: 135, trainMin: 14, trainMax: 39, trainDuree: '1h25', hotel: 70 },
+  { nom: 'Caen', region: 'Normandie', pays: 'France', lat: 49.18, lon: -0.37, iata: '', distanceKm: 230, trainMin: 19, trainMax: 49, trainDuree: '2h', hotel: 75 },
+  { nom: 'Deauville', region: 'Normandie', pays: 'France', lat: 49.36, lon: 0.07, iata: '', distanceKm: 200, trainMin: 19, trainMax: 49, trainDuree: '2h', hotel: 95 },
+  // Île-de-France
+  { nom: 'Fontainebleau', region: 'Île-de-France', pays: 'France', lat: 48.40, lon: 2.70, iata: '', distanceKm: 65, trainMin: 9, trainMax: 19, trainDuree: '40min', hotel: 75 },
+  { nom: 'Versailles', region: 'Île-de-France', pays: 'France', lat: 48.80, lon: 2.13, iata: '', distanceKm: 25, trainMin: 5, trainMax: 12, trainDuree: '30min', hotel: 80 },
+  // Corse
+  { nom: 'Ajaccio', region: 'Corse', pays: 'France', lat: 41.93, lon: 8.74, iata: 'AJA', distanceKm: 1250, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 95 },
+  { nom: 'Bastia', region: 'Corse', pays: 'France', lat: 42.70, lon: 9.45, iata: 'BIA', distanceKm: 1180, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 90 },
+  // Europe — avion (gardées)
   { nom: 'Lisbonne', region: 'Portugal', pays: 'Portugal', lat: 38.72, lon: -9.14, iata: 'LIS', distanceKm: 1800, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 70 },
   { nom: 'Barcelone', region: 'Catalogne', pays: 'Espagne', lat: 41.39, lon: 2.16, iata: 'BCN', distanceKm: 1100, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 90 },
   { nom: 'Rome', region: 'Latium', pays: 'Italie', lat: 41.90, lon: 12.50, iata: 'FCO', distanceKm: 1400, trainMin: 999, trainMax: 999, trainDuree: '', hotel: 95 },
@@ -35,7 +67,7 @@ const DESTINATIONS_BASE = [
 
 async function fetchMeteo(latitude: number, longitude: number, satDate: string, sunDate: string): Promise<Meteo | null> {
   try {
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&daily=temperature_2m_max,precipitation_sum,sunshine_duration&timezone=Europe%2FParis&start_date=${satDate}&end_date=${sunDate}`
+    const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + latitude + '&longitude=' + longitude + '&daily=temperature_2m_max,precipitation_sum,sunshine_duration&timezone=Europe%2FParis&start_date=' + satDate + '&end_date=' + sunDate
     const r = await fetch(url)
     const json = await r.json()
     const daily = json.daily
@@ -54,10 +86,9 @@ async function fetchMeteo(latitude: number, longitude: number, satDate: string, 
 
 async function fetchPrixVol(destIata: string, departDate: string, retourDate: string): Promise<number | null> {
   try {
-    const [r1, r2] = await Promise.all([
-      fetch(`https://api.travelpayouts.com/v2/prices/latest?origin=PAR&destination=${destIata}&depart_date=${departDate}&currency=eur&one_way=true&token=${TP_TOKEN}`),
-      fetch(`https://api.travelpayouts.com/v2/prices/latest?origin=${destIata}&destination=PAR&depart_date=${retourDate}&currency=eur&one_way=true&token=${TP_TOKEN}`)
-    ])
+    const u1 = 'https://api.travelpayouts.com/v2/prices/latest?origin=PAR&destination=' + destIata + '&depart_date=' + departDate + '&currency=eur&one_way=true&token=' + TP_TOKEN
+    const u2 = 'https://api.travelpayouts.com/v2/prices/latest?origin=' + destIata + '&destination=PAR&depart_date=' + retourDate + '&currency=eur&one_way=true&token=' + TP_TOKEN
+    const [r1, r2] = await Promise.all([fetch(u1), fetch(u2)])
     const j1 = await r1.json()
     const j2 = await r2.json()
     const arr1 = j1.success && j1.data && j1.data.length ? j1.data.slice(0, 3).map((v: any) => v.value) : []
@@ -69,29 +100,42 @@ async function fetchPrixVol(destIata: string, departDate: string, retourDate: st
   } catch { return null }
 }
 
+// SCORING MÉTÉO — pluie pénalisée fortement
 function scoreMeteo(m: Meteo | null, pref: string): number {
   if (!m) return 40
   let s = 0
   if (pref === 'soleil') {
-    s += Math.min(40, m.soleil * 4)
-    s += m.temp >= 24 ? 30 : m.temp >= 20 ? 20 : m.temp >= 16 ? 10 : 0
-    s += m.pluie === 0 ? 30 : m.pluie < 2 ? 20 : m.pluie < 5 ? 10 : 0
+    // Soleil : max 35 pts
+    s += Math.min(35, m.soleil * 4)
+    // Température : max 30 pts
+    s += m.temp >= 24 ? 30 : m.temp >= 20 ? 22 : m.temp >= 16 ? 12 : 0
+    // Pluie : pénalité forte (max 35 pts mais facile à perdre)
+    s += m.pluie === 0 ? 35 : m.pluie < 1 ? 25 : m.pluie < 2 ? 15 : m.pluie < 4 ? 5 : 0
   } else if (pref === 'doux') {
-    s += m.temp >= 16 && m.temp <= 26 ? 40 : m.temp >= 12 ? 25 : 10
+    s += m.temp >= 16 && m.temp <= 26 ? 35 : m.temp >= 12 ? 22 : 8
     s += Math.min(30, m.soleil * 3)
-    s += m.pluie < 5 ? 30 : m.pluie < 10 ? 20 : 10
+    s += m.pluie < 2 ? 35 : m.pluie < 5 ? 22 : m.pluie < 10 ? 10 : 0
   } else {
-    s += m.pluie === 0 ? 50 : m.pluie < 2 ? 40 : m.pluie < 5 ? 25 : m.pluie < 10 ? 10 : 0
-    s += m.temp >= 14 ? 30 : m.temp >= 10 ? 20 : 10
+    // Préférence "peu de pluie" — pluie ultra pénalisante
+    s += m.pluie === 0 ? 55 : m.pluie < 1 ? 40 : m.pluie < 2 ? 25 : m.pluie < 5 ? 10 : 0
+    s += m.temp >= 14 ? 25 : m.temp >= 10 ? 15 : 5
     s += Math.min(20, m.soleil * 2)
   }
-  return Math.min(100, Math.round(s))
+  return Math.min(100, Math.max(0, Math.round(s)))
 }
 
+// SCORING PRIX — dépassement budget = score qui plonge
 function scorePrix(meilleurPrix: number, hotelTotal: number, budget: number): number {
   const total = meilleurPrix + hotelTotal
-  if (total > budget) return Math.max(0, Math.round(100 - (total - budget) / budget * 80))
-  return Math.round(80 + ((budget - total) / budget) * 20)
+  if (total <= budget * 0.7) return 100
+  if (total <= budget) return Math.round(70 + ((budget - total) / (budget * 0.3)) * 30)
+  // Dépassement budget : pénalité progressive
+  const depassement = (total - budget) / budget
+  if (depassement < 0.1) return 50
+  if (depassement < 0.2) return 35
+  if (depassement < 0.3) return 20
+  if (depassement < 0.5) return 10
+  return 0
 }
 
 export async function searchDestinations(params: SearchParams): Promise<Destination[]> {
@@ -110,7 +154,7 @@ export async function searchDestinations(params: SearchParams): Promise<Destinat
     const batch = DESTINATIONS_BASE.slice(i, i + BATCH)
     const fetches = batch.map((dest) => Promise.all([
       fetchMeteo(dest.lat, dest.lon, satDate, sunDate),
-      dest.trainMin < 500 ? Promise.resolve(null) : fetchPrixVol(dest.iata, departDate, retourDate),
+      dest.trainMin < 500 || !dest.iata ? Promise.resolve(null) : fetchPrixVol(dest.iata, departDate, retourDate),
     ]))
     const batchResults = await Promise.all(fetches)
 
@@ -126,7 +170,7 @@ export async function searchDestinations(params: SearchParams): Promise<Destinat
           type: 'train',
           prixAR: prixTrainAR,
           source: 'estime',
-          lien: `https://www.omio.fr/trains/paris/${encodeURIComponent(d.nom.toLowerCase())}?departureDate=${departDate}&returnDate=${retourDate}`,
+          lien: 'https://www.omio.fr/trains/paris/' + encodeURIComponent(d.nom.toLowerCase()) + '?departureDate=' + departDate + '&returnDate=' + retourDate,
           duree: d.trainDuree,
         })
       }
@@ -137,18 +181,18 @@ export async function searchDestinations(params: SearchParams): Promise<Destinat
           type: 'voiture',
           prixAR: prixVoitureAR,
           source: 'estime',
-          lien: `https://www.viamichelin.fr/web/itineraires?from=Paris&to=${encodeURIComponent(d.nom)}`,
-          duree: `~${Math.round(d.distanceKm / 100)}h`,
+          lien: 'https://www.viamichelin.fr/web/itineraires?from=Paris&to=' + encodeURIComponent(d.nom),
+          duree: '~' + Math.round(d.distanceKm / 100) + 'h',
         })
       }
 
-      if (d.trainMin >= 500) {
+      if (d.trainMin >= 500 && d.iata) {
         const prixAvion = prixVol !== null ? prixVol : Math.round(d.distanceKm * 0.07 + 30)
         transports.push({
           type: 'avion',
           prixAR: prixAvion,
           source: prixVol !== null ? 'reel' : 'estime',
-          lien: `https://www.kiwi.com/fr/search/results/Paris/${encodeURIComponent(d.nom)}/${departDate}/${retourDate}?affilid=${TP_TOKEN}`,
+          lien: 'https://www.kiwi.com/fr/search/results/Paris/' + encodeURIComponent(d.nom) + '/' + departDate + '/' + retourDate + '?affilid=' + TP_TOKEN,
         })
       }
 
@@ -160,8 +204,9 @@ export async function searchDestinations(params: SearchParams): Promise<Destinat
       const totalEstime = meilleurTransport.prixAR + hotelTotal
       const sm = scoreMeteo(meteo, meteoPreference)
       const sp = scorePrix(meilleurTransport.prixAR, hotelTotal, budget)
-      const sg = Math.round(sm * 0.55 + sp * 0.45)
-      const bookingUrl = `https://www.booking.com/searchresults.fr.html?ss=${encodeURIComponent(d.nom)}&checkin=${departDate}&checkout=${retourDate}&aid=${BOOKING_AID}`
+      // Pondération : 50% météo + 50% prix
+      const sg = Math.round(sm * 0.50 + sp * 0.50)
+      const bookingUrl = 'https://www.booking.com/searchresults.fr.html?ss=' + encodeURIComponent(d.nom) + '&checkin=' + departDate + '&checkout=' + retourDate + '&aid=' + BOOKING_AID
 
       resultats.push({
         nom: d.nom,
@@ -185,8 +230,8 @@ export async function searchDestinations(params: SearchParams): Promise<Destinat
     })
   }
 
+  // Plus de filtre par budget — on garde tout pour colorier toutes les régions
   return resultats
-    .filter(r => r.totalEstime <= budget * 1.3)
     .sort((a, b) => b.scoreGlobal - a.scoreGlobal)
-    .slice(0, 25)
+    .slice(0, 50)
 }
