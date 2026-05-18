@@ -38,4 +38,6 @@ export interface Destination {
   scorePrix: number
   scoreGlobal: number
   bookingUrl: string
+  photo?: string
+}
 }
