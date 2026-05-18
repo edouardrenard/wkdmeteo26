@@ -50,7 +50,7 @@ function buildRegionPopup(regionName: string, destsInRegion: Destination[], avgS
     const m = d.meteo
     const meteoTxt = m ? meteoIcon(m.soleil, m.pluie) + ' ' + m.temp + '°C · ' + m.pluie + 'mm' : 'Météo N/D'
     const t = d.meilleurTransport
-    const dPhoto = 'https://source.unsplash.com/280x110/?' + encodeURIComponent(d.nom) + ',travel'
+    const dPhoto = d.photo || 'https://images.pexels.com/photos/1010657/pexels-photo-1010657.jpeg?w=400'
     villesHtml += '<div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;margin-bottom:10px;overflow:hidden">' +
       '<div style="position:relative;height:100px;background:#E2E8F0">' +
         '<img src="' + dPhoto + '" alt="' + d.nom + '" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display=\'none\'" />' +
