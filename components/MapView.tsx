@@ -236,4 +236,26 @@ export default function MapView({ results, loading }: Props) {
           <div className="text-center text-slate-400 bg-slate-900/90 px-8 py-5 rounded-2xl border border-slate-800">
             <div className="text-3xl mb-2">🗺️</div>
             <p className="font-medium mb-1">Lance une recherche</p>
-            <p className="text-sm">La carte des régions s&a
+            <p className="text-sm">La carte des régions s&apos;affichera ici</p>
+          </div>
+        </div>
+      )}
+
+      <div ref={containerRef} className="w-full rounded-2xl border border-slate-800" style={{ height: '650px' }} />
+
+      <style>{`
+        .dark-popup .leaflet-popup-content-wrapper {
+          background: #0F172A !important;
+          color: white !important;
+          border: 1px solid #334155 !important;
+          border-radius: 12px !important;
+          box-shadow: 0 8px 30px rgba(0,0,0,0.7) !important;
+        }
+        .dark-popup .leaflet-popup-tip { background: #0F172A !important; }
+        .dark-popup .leaflet-popup-close-button { color: #94A3B8 !important; font-size: 18px !important; top: 6px !important; right: 8px !important; }
+        .dark-popup .leaflet-popup-content { margin: 12px 14px !important; }
+        .region-tooltip { background: #0F172A !important; color: #94A3B8 !important; border: 1px solid #334155 !important; border-radius: 6px !important; padding: 4px 8px !important; font-size: 11px !important; }
+      `}</style>
+    </div>
+  )
+}
