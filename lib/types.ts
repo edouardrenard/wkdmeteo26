@@ -40,4 +40,3 @@ export interface Destination {
   bookingUrl: string
   photo?: string
 }
-}
