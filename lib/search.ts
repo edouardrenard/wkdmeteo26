@@ -206,7 +206,6 @@ export async function searchDestinations(params: SearchParams): Promise<Destinat
         scoreGlobal: sg,
         bookingUrl,
         photo: d.photo,
-      }),
       })
     })
   }
