@@ -91,8 +91,11 @@ async function fetchPhotoWiki(nom: string): Promise<string | null> {
     const r = await fetch(url)
     if (!r.ok) return null
     const d = await r.json()
+    if (d.originalimage && d.originalimage.source) {
+      return d.originalimage.source
+    }
     if (d.thumbnail && d.thumbnail.source) {
-      return d.thumbnail.source.replace(/\/\d+px-/, '/600px-')
+      return d.thumbnail.source
     }
     return null
   } catch { return null }
