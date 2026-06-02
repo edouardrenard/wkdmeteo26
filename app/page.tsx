@@ -6,6 +6,7 @@ import { searchDestinations } from '@/lib/search'
 import SearchForm from '@/components/SearchForm'
 import MapView from '@/components/MapView'
 import ResultsGrid from '@/components/ResultsGrid'
+import TopDestinations from '@/components/TopDestinations'
 
 export default function Home() {
   const [results, setResults] = useState<Destination[]>([])
@@ -36,13 +37,13 @@ export default function Home() {
             <div className="flex bg-slate-800 rounded-lg p-1 gap-1">
               <button
                 onClick={() => setView('map')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${view === 'map' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                className={'px-3 py-1.5 rounded-md text-xs font-medium transition-colors ' + (view === 'map' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white')}
               >
                 🗺️ Carte
               </button>
               <button
                 onClick={() => setView('list')}
-                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${view === 'list' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                className={'px-3 py-1.5 rounded-md text-xs font-medium transition-colors ' + (view === 'list' ? 'bg-slate-600 text-white' : 'text-slate-400 hover:text-white')}
               >
                 📋 Liste
               </button>
@@ -65,13 +66,17 @@ export default function Home() {
 
         <SearchForm onSearch={handleSearch} loading={loading} />
 
+        {searched && !loading && results.length > 0 && (
+          <TopDestinations results={results} />
+        )}
+
         {searched && (
           <div>
             {!loading && results.length > 0 && (
               <div className="flex items-center justify-between mb-4">
                 <p className="text-sm text-slate-400">
                   <span className="text-white font-medium">{results.length} destinations</span>
-                  {view === 'map' ? ' — clique sur un cercle pour les détails' : ' — triées par score'}
+                  {view === 'map' ? ' — clique sur une région pour les détails' : ' — triées par score'}
                 </p>
                 <p className="text-xs text-slate-500">Météo Open-Meteo · Train SNCF estimé · Voiture 0.21€/km</p>
               </div>
