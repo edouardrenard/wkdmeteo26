@@ -15,7 +15,7 @@ export default function Confidentialite() {
           <h2 className="text-xl font-semibold mb-3 text-sky-400">Responsable du traitement</h2>
           <p className="text-slate-300 leading-relaxed">
             Édouard, particulier établi à Paris (France).<br />
-            Contact : <a href="mailto:nom.prenom@gmail.com" className="text-sky-400 hover:underline">nom.prenom@gmail.com</a>
+            Contact : <a href="mailto:joeblack140720@gmail.com" className="text-sky-400 hover:underline">joeblack14072@gmail.com</a>
           </p>
         </section>
 
