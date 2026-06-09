@@ -1,7 +1,7 @@
 import { Destination, Meteo, SearchParams, Transport } from './types'
 
-const TP_TOKEN = '74f9e5198dc096bdda20fec145988527'
-const BOOKING_AID = '397594'
+const TP_TOKEN = ''
+const BOOKING_AID = ''
 const COUT_KM = 0.21
 
 const DESTINATIONS_BASE = [
