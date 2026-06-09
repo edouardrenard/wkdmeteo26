@@ -14,7 +14,7 @@ export default function MentionsLegales() {
           <h2 className="text-xl font-semibold mb-3 text-sky-400">Éditeur du site</h2>
           <p className="text-slate-300 leading-relaxed">
             Le site WeekendIdéal est édité par <strong>Édouard</strong>, particulier établi à Paris (France).<br />
-            Contact : <a href="mailto:joeblack170429@gmail.com" className="text-sky-400 hover:underline">joeblack170429@gmail.com</a>
+            Contact : <a href="mailto:joeblack170420@gmail.com" className="text-sky-400 hover:underline">joeblack170420@gmail.com</a>
           </p>
         </section>
 
