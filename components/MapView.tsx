@@ -66,14 +66,12 @@ export default function MapView({ results, loading }: Props) {
       }
       if (mapInstanceRef.current) return
       const Leaf = window.L
-      const isMobile = window.innerWidth < 768
       const map = Leaf.map(mapRef.current, {
         center: [46.5, 2.5],
-        zoom: isMobile ? 5 : 6,
-        zoomControl: false,
+        zoom: 6,
+        zoomControl: true,
         attributionControl: false,
       })
-      Leaf.control.zoom({ position: 'topleft' }).addTo(map)
       Leaf.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
         maxZoom: 18,
       }).addTo(map)
@@ -120,22 +118,15 @@ export default function MapView({ results, loading }: Props) {
         layersRef.current.push(layer)
       })
 
-    const isMobile = window.innerWidth < 768
-
     results.forEach((dest) => {
       const score = dest.scoreGlobal
       const color = colorFromScore(score)
-      const labelSize = isMobile ? 11 : 13
-      const padding = isMobile ? '3px 7px' : '4px 10px'
-      const pillBg = '#FFFFFF'
-      const scorePad = isMobile ? '1px 5px' : '2px 7px'
 
       const labelHtml =
-        '<div style="background:' + pillBg + ';border:2px solid ' + color +
-        ';border-radius:999px;padding:' + padding + ';font-size:' + labelSize +
-        'px;font-weight:600;color:#1F2937;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.15);display:flex;align-items:center;gap:5px;">' +
+        '<div style="background:#FFFFFF;border:2px solid ' + color +
+        ';border-radius:999px;padding:4px 10px;font-size:13px;font-weight:600;color:#1F2937;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.15);display:flex;align-items:center;gap:5px;">' +
         '<span>' + dest.nom + '</span>' +
-        '<span style="background:' + color + ';color:#fff;border-radius:999px;padding:' + scorePad + ';font-size:' + (labelSize - 2) + 'px;">' + score + '</span>' +
+        '<span style="background:' + color + ';color:#fff;border-radius:999px;padding:2px 7px;font-size:11px;">' + score + '</span>' +
         '</div>'
 
       const icon = Leaf.divIcon({
@@ -171,7 +162,6 @@ export default function MapView({ results, loading }: Props) {
 
       marker.bindPopup(popupHtml, {
         maxWidth: 280,
-        maxHeight: 380,
         autoPan: true,
         autoPanPadding: [20, 60],
       })
