@@ -185,7 +185,9 @@ export async function searchDestinations(params: SearchParams): Promise<Destinat
       }
 
       if (d.trainMin >= 500 && d.iata) {
-        const prixAvion = prixVol !== null ? prixVol : Math.round(d.distanceKm * 0.07 + 30)
+        // Prix avion réalistes A/R hors saison
+        const estimVol = d.distanceKm < 1500 ? 180 : d.distanceKm < 2000 ? 240 : 320
+        const prixAvion = prixVol !== null ? prixVol : estimVol
         transports.push({
           type: 'avion',
           prixAR: prixAvion,
