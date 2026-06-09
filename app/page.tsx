@@ -27,9 +27,9 @@ export default function Home() {
       <header className="border-b border-slate-800 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <span className="text-2xl">🌤️</span>
+            <span className="text-2xl">☀️</span>
             <div>
-              <h1 className="text-lg font-semibold">WeekendIdéal</h1>
+              <h1 className="text-lg font-semibold">WeekendSoleil</h1>
               <p className="text-xs text-slate-400">Où partir ce weekend ? Météo · Train · Voiture · Hôtel</p>
             </div>
           </div>
@@ -87,8 +87,33 @@ export default function Home() {
             }
           </div>
         )}
+      </div>
 
+      <footer className="border-t border-slate-800 mt-12 px-6 py-8">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <p className="text-sm text-slate-400">
+                <span className="text-white font-medium">☀️ WeekendSoleil</span> — Trouve où partir ce weekend selon la météo et ton budget
+              </p>
+              <p className="text-xs text-slate-500 mt-1">
+                Version bêta · Données météo Open-Meteo · Photos Wikipédia
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-2 text-xs">
+              <a href="/mentions-legales" className="text-slate-400 hover:text-sky-400 transition-colors">
+                Mentions légales
+              </a>
+              <a href="/confidentialite" className="text-slate-400 hover:text-sky-400 transition-colors">
+                Confidentialité
+              </a>
+              <a href="mailto:nom.prenom@gmail.com" className="text-slate-400 hover:text-sky-400 transition-colors">
+                Contact
+              </a>
+            </div>
+          </div>
         </div>
+      </footer>
     </main>
   )
 }
