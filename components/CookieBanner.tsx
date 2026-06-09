@@ -38,6 +38,7 @@ export default function CookieBanner() {
     setConsent('accepted')
     setShow(false)
     enableAnalytics()
+    try { window.dispatchEvent(new Event('cookie-consent-changed')) } catch {}
   }
 
   const reject = () => {
