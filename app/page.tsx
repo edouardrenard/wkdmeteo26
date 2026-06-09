@@ -23,7 +23,7 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen bg-slate-950 text-white flex flex-col">
       <header className="border-b border-slate-800 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -89,7 +89,7 @@ export default function Home() {
         )}
       </div>
 
-      <footer className="border-t border-slate-800 mt-12 px-6 py-8">
+     <footer className="border-t border-slate-800 mt-auto px-6 py-8">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
@@ -107,7 +107,7 @@ export default function Home() {
               <a href="/confidentialite" className="text-slate-400 hover:text-sky-400 transition-colors">
                 Confidentialité
               </a>
-              <a href="mailto:nom.prenom@gmail.com" className="text-slate-400 hover:text-sky-400 transition-colors">
+              <a href="mailto:joeblack140720@gmail.com" className="text-slate-400 hover:text-sky-400 transition-colors">
                 Contact
               </a>
             </div>
