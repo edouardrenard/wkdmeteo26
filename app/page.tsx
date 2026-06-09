@@ -66,6 +66,10 @@ export default function Home() {
 
         <SearchForm onSearch={handleSearch} loading={loading} />
 
+        {searched && !loading && results.length > 0 && (
+          <TopDestinations results={results} />
+        )}
+
         {searched && (
           <div>
             {!loading && results.length > 0 && (
@@ -84,12 +88,7 @@ export default function Home() {
           </div>
         )}
 
-        {searched && !loading && results.length > 0 && view === 'map' && (
-          <div className="mt-8">
-            <TopDestinations results={results} />
-          </div>
-        )}
-      </div>
+        </div>
     </main>
   )
 }
