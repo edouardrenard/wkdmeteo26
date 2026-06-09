@@ -1,272 +1,222 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
 import { Destination } from '@/lib/types'
+import { useEffect, useRef, useState } from 'react'
 
 interface Props {
   results: Destination[]
   loading: boolean
 }
 
-const GEOJSON_URL = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions.geojson'
+declare global { interface Window { L: any } }
 
-
-function scoreToColor(score: number): string {
+function colorFromScore(score: number): string {
   if (score >= 80) return '#15803D'
-  if (score >= 70) return '#16A34A'
-  if (score >= 60) return '#65A30D'
-  if (score >= 50) return '#CA8A04'
-  if (score >= 40) return '#EA580C'
+  if (score >= 70) return '#22C55E'
+  if (score >= 60) return '#84CC16'
+  if (score >= 50) return '#EAB308'
+  if (score >= 40) return '#F97316'
   if (score >= 30) return '#DC2626'
   return '#991B1B'
 }
 
-function scoreToFillColor(score: number): string {
+function fillFromScore(score: number): string {
   if (score >= 80) return '#BBF7D0'
   if (score >= 70) return '#D9F99D'
   if (score >= 60) return '#FEF08A'
   if (score >= 50) return '#FED7AA'
-  if (score >= 40) return '#FECACA'
-  if (score >= 30) return '#FCA5A5'
+  if (score >= 40) return '#FCA5A5'
   return '#F87171'
 }
 
-function tIcon(type: string): string {
-  return type === 'train' ? '🚆' : type === 'voiture' ? '🚗' : '✈️'
-}
-
-function meteoIcon(soleil: number, pluie: number): string {
-  if (pluie >= 4) return '🌧️'
-  if (pluie >= 1) return '🌦️'
-  return soleil >= 6 ? '☀️' : soleil >= 3 ? '⛅' : '☁️'
-}
-
-function buildRegionPopup(regionName: string, destsInRegion: Destination[], avgScore: number): string {
-  const color = scoreToColor(avgScore)
-  const sorted = [...destsInRegion].sort((a, b) => b.scoreGlobal - a.scoreGlobal)
-
-  let villesHtml = ''
-  sorted.forEach(d => {
-    const dColor = scoreToColor(d.scoreGlobal)
-    const m = d.meteo
-    const meteoTxt = m ? meteoIcon(m.soleil, m.pluie) + ' ' + m.temp + '°C · ' + m.pluie + 'mm' : 'Météo N/D'
-    const t = d.meilleurTransport
-    const dPhoto = d.photo || 'https://images.pexels.com/photos/1010657/pexels-photo-1010657.jpeg?w=400'
-    villesHtml += '<div style="background:#F8FAFC;border:1px solid #E2E8F0;border-radius:10px;margin-bottom:10px;overflow:hidden">' +
-      '<div style="position:relative;height:100px;background:#E2E8F0">' +
-        '<img src="' + dPhoto + '" alt="' + d.nom + '" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display=\'none\'" />' +
-        '<div style="position:absolute;top:8px;right:8px;background:' + dColor + ';color:white;font-size:12px;font-weight:700;padding:3px 10px;border-radius:14px;box-shadow:0 2px 6px rgba(0,0,0,0.3)">' + d.scoreGlobal + '</div>' +
-        '<div style="position:absolute;bottom:0;left:0;right:0;padding:6px 10px;background:linear-gradient(transparent,rgba(0,0,0,0.75))">' +
-          '<div style="font-size:14px;font-weight:700;color:white">' + tIcon(t.type) + ' ' + d.nom + '</div>' +
-        '</div>' +
-      '</div>' +
-      '<div style="padding:10px">' +
-        '<div style="font-size:11px;color:#475569;margin-bottom:8px">' + meteoTxt + ' · Total <strong style="color:#0F172A">~' + d.totalEstime + '€</strong></div>' +
-        '<div style="display:flex;gap:5px">' +
-          '<a href="' + t.lien + '" target="_blank" style="flex:1;text-align:center;padding:7px;background:#0EA5E9;color:white;border-radius:6px;font-size:11px;font-weight:600;text-decoration:none">' + tIcon(t.type) + ' Réserver transport</a>' +
-          '<a href="' + d.bookingUrl + '" target="_blank" style="flex:1;text-align:center;padding:7px;background:#003580;color:white;border-radius:6px;font-size:11px;font-weight:600;text-decoration:none">🏨 Hôtel</a>' +
-        '</div>' +
-      '</div>' +
-    '</div>'
-  })
-
-  return '<div style="font-family:system-ui;min-width:300px;max-width:320px;color:#0F172A;max-height:500px;overflow-y:auto">' +
-    '<div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;padding-bottom:10px;border-bottom:2px solid ' + color + '">' +
-      '<div style="width:50px;height:50px;border-radius:50%;background:' + color + ';display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px ' + color + '50">' +
-        '<span style="font-size:17px;font-weight:800;color:white;line-height:1">' + Math.round(avgScore) + '</span>' +
-        '<span style="font-size:8px;color:white;opacity:0.85">/100</span>' +
-      '</div>' +
-      '<div>' +
-        '<div style="font-size:16px;font-weight:700;color:#0F172A">' + regionName + '</div>' +
-        '<div style="font-size:12px;color:#64748B">' + destsInRegion.length + ' destination' + (destsInRegion.length > 1 ? 's' : '') + ' · triées par score</div>' +
-      '</div>' +
-    '</div>' +
-    villesHtml +
-  '</div>'
+function meteoIcon(meteo: any): string {
+  if (!meteo) return '❓'
+  if (meteo.pluie > 2) return '🌧️'
+  if (meteo.pluie > 0.3) return '🌦️'
+  if (meteo.soleil >= 8) return '☀️'
+  if (meteo.soleil >= 5) return '🌤️'
+  return '☁️'
 }
 
 export default function MapView({ results, loading }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null)
-  const mapRef = useRef<any>(null)
+  const mapRef = useRef<HTMLDivElement>(null)
+  const mapInstanceRef = useRef<any>(null)
   const layersRef = useRef<any[]>([])
-  const geoDataRef = useRef<any>(null)
-  const [ready, setReady] = useState(false)
+  const [legendOpen, setLegendOpen] = useState(false)
 
   useEffect(() => {
-    if (typeof window === 'undefined' || mapRef.current) return
-    const init = async () => {
-      if (!document.getElementById('leaflet-css')) {
-        const cssLink = document.createElement('link')
-        cssLink.setAttribute('id', 'leaflet-css')
-        cssLink.setAttribute('rel', 'stylesheet')
-        cssLink.setAttribute('href', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css')
-        document.head.appendChild(cssLink)
-        await new Promise(r => setTimeout(r, 100))
-      }
-      if (!containerRef.current) return
-      const Lmod = await import('leaflet')
-      const Leaf: any = Lmod.default
-
-      const mapInstance = Leaf.map(containerRef.current, {
-        center: [46.7, 2.5],
-        zoom: 6,
-        zoomControl: true,
-        preferCanvas: false,
-      })
-      mapRef.current = mapInstance
-
-      Leaf.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_nolabels/{z}/{x}/{y}{r}.png', {
-        attribution: '© OpenStreetMap © CARTO',
-        subdomains: 'abcd',
-        maxZoom: 12,
-      }).addTo(mapInstance)
-
-      try {
-        const geoResp = await fetch(GEOJSON_URL)
-        const geoData = await geoResp.json()
-        geoDataRef.current = geoData
-      } catch (err) {
-        console.error('GeoJSON load error', err)
-      }
-
-      setReady(true)
+    if (!mapRef.current) return
+    const cssId = 'leaflet-css'
+    if (!document.getElementById(cssId)) {
+      const link = document.createElement('link')
+      link.id = cssId
+      link.rel = 'stylesheet'
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+      document.head.appendChild(link)
     }
-    init()
+
+    const initMap = async () => {
+      if (!window.L) {
+        await new Promise<void>((resolve) => {
+          const script = document.createElement('script')
+          script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+          script.onload = () => resolve()
+          document.body.appendChild(script)
+        })
+      }
+      if (mapInstanceRef.current) return
+      const Leaf = window.L
+      const isMobile = window.innerWidth < 768
+      const map = Leaf.map(mapRef.current, {
+        center: [46.5, 2.5],
+        zoom: isMobile ? 5 : 6,
+        zoomControl: false,
+        attributionControl: false,
+      })
+      Leaf.control.zoom({ position: 'topleft' }).addTo(map)
+      Leaf.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 18,
+      }).addTo(map)
+      mapInstanceRef.current = map
+    }
+    initMap()
   }, [])
 
   useEffect(() => {
-    if (!ready || !mapRef.current || !geoDataRef.current) return
-    const update = async () => {
-      const Lmod = await import('leaflet')
-      const Leaf: any = Lmod.default
+    if (!mapInstanceRef.current || !window.L || !results.length) return
+    const Leaf = window.L
+    const map = mapInstanceRef.current
 
-      layersRef.current.forEach(l => { try { mapRef.current.removeLayer(l) } catch {} })
-      layersRef.current = []
+    layersRef.current.forEach((l) => map.removeLayer(l))
+    layersRef.current = []
 
-      const villesFR = results.filter(r => r.pays === 'France')
+    const regionScores: { [key: string]: number[] } = {}
+    results.forEach((d) => {
+      if (!regionScores[d.region]) regionScores[d.region] = []
+      regionScores[d.region].push(d.scoreGlobal)
+    })
+    const regionAvg: { [key: string]: number } = {}
+    Object.keys(regionScores).forEach((r) => {
+      const arr = regionScores[r]
+      regionAvg[r] = Math.round(arr.reduce((a, b) => a + b, 0) / arr.length)
+    })
 
-      const scoresByRegion: Record<string, Destination[]> = {}
-      villesFR.forEach(v => {
-        if (!scoresByRegion[v.region]) scoresByRegion[v.region] = []
-        scoresByRegion[v.region].push(v)
-      })
-
-      const geoLayer = Leaf.geoJSON(geoDataRef.current, {
-        style: (feature: any) => {
-          const regionName = feature.properties.nom
-          const destsInRegion = scoresByRegion[regionName] || []
-          if (destsInRegion.length === 0) {
+    fetch('https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions.geojson')
+      .then((r) => r.json())
+      .then((geojson) => {
+        const layer = Leaf.geoJSON(geojson, {
+          style: (feat: any) => {
+            const nom = feat.properties.nom
+            const score = regionAvg[nom] || 0
             return {
-              fillColor: '#F1F5F9',
-              fillOpacity: 0.5,
-              color: '#CBD5E1',
+              fillColor: score > 0 ? fillFromScore(score) : '#E5E7EB',
               weight: 1,
-              opacity: 0.6,
+              opacity: 1,
+              color: '#fff',
+              fillOpacity: score > 0 ? 0.6 : 0.2,
             }
-          }
-          const avgScore = destsInRegion.reduce((sum, d) => sum + d.scoreGlobal, 0) / destsInRegion.length
-          return {
-            fillColor: scoreToFillColor(avgScore),
-            fillOpacity: 0.75,
-            color: scoreToColor(avgScore),
-            weight: 2,
-            opacity: 0.6,
-          }
-        },
-        onEachFeature: (feature: any, layer: any) => {
-          const regionName = feature.properties.nom
-          const destsInRegion = scoresByRegion[regionName] || []
-          if (destsInRegion.length > 0) {
-            const avgScore = destsInRegion.reduce((sum, d) => sum + d.scoreGlobal, 0) / destsInRegion.length
-            const popup = buildRegionPopup(regionName, destsInRegion, avgScore)
-            layer.bindPopup(popup, { maxWidth: 340, className: 'light-popup' })
-            layer.on('mouseover', function (this: any) {
-              this.setStyle({ fillOpacity: 0.9, weight: 3 })
-            })
-            layer.on('mouseout', function (this: any) {
-              this.setStyle({ fillOpacity: 0.75, weight: 2 })
-            })
-          }
-        },
+          },
+        }).addTo(map)
+        layersRef.current.push(layer)
       })
-      geoLayer.addTo(mapRef.current)
-      layersRef.current.push(geoLayer)
 
-      // Étiquettes pilules style OuiGo
-      villesFR.forEach(d => {
-        const labelColor = scoreToColor(d.scoreGlobal)
-        const labelHtml = '<div style="display:inline-flex;align-items:center;background:' + labelColor + ';color:white;padding:4px 10px;border-radius:14px;font-size:11px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.25);border:2px solid white;transform:translate(-50%,-50%)">' + d.nom + ' <span style="background:rgba(255,255,255,0.25);padding:1px 6px;border-radius:8px;margin-left:5px;font-size:10px">' + d.scoreGlobal + '</span></div>'
-        const labelIcon = Leaf.divIcon({
-          className: 'city-pill',
-          html: labelHtml,
-          iconSize: [1, 1],
-          iconAnchor: [0, 0],
-        })
-        const coords: [number, number] = [d.lat, d.lon]
-        const marker = Leaf.marker(coords, { icon: labelIcon, zIndexOffset: 200, interactive: false })
-        marker.addTo(mapRef.current)
-        layersRef.current.push(marker)
+    const isMobile = window.innerWidth < 768
+
+    results.forEach((dest) => {
+      const score = dest.scoreGlobal
+      const color = colorFromScore(score)
+      const labelSize = isMobile ? 11 : 13
+      const padding = isMobile ? '3px 7px' : '4px 10px'
+      const pillBg = '#FFFFFF'
+      const scorePad = isMobile ? '1px 5px' : '2px 7px'
+
+      const labelHtml =
+        '<div style="background:' + pillBg + ';border:2px solid ' + color +
+        ';border-radius:999px;padding:' + padding + ';font-size:' + labelSize +
+        'px;font-weight:600;color:#1F2937;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,.15);display:flex;align-items:center;gap:5px;">' +
+        '<span>' + dest.nom + '</span>' +
+        '<span style="background:' + color + ';color:#fff;border-radius:999px;padding:' + scorePad + ';font-size:' + (labelSize - 2) + 'px;">' + score + '</span>' +
+        '</div>'
+
+      const icon = Leaf.divIcon({
+        html: labelHtml,
+        className: '',
+        iconSize: undefined,
+        iconAnchor: [40, 14],
       })
-    }
-    update()
-  }, [results, ready])
 
-  return (
-    <div className="relative w-full">
-      <div className="absolute top-3 left-3 z-[1000] bg-white/95 backdrop-blur-sm border border-slate-200 rounded-xl p-3 text-xs shadow-lg">
-        <p className="font-semibold text-slate-800 mb-2">Score régional moyen</p>
-        {[
-          { color: '#15803D', label: '80+ Excellent' },
-          { color: '#16A34A', label: '70–79 Très bon' },
-          { color: '#65A30D', label: '60–69 Bon' },
-          { color: '#CA8A04', label: '50–59 Correct' },
-          { color: '#EA580C', label: '40–49 Faible' },
-          { color: '#DC2626', label: '< 40 Mauvais' },
-        ].map(({ color, label }) => (
-          <div key={label} className="flex items-center gap-2 mb-1">
-            <div className="w-3 h-3 rounded-sm" style={{ background: color }} />
-            <span className="text-slate-600">{label}</span>
-          </div>
-        ))}
-        <div className="border-t border-slate-200 mt-2 pt-2 text-slate-500 text-xs">
-          Clique sur une région pour les détails
+      const marker = Leaf.marker([dest.lat, dest.lon], { icon }).addTo(map)
+      layersRef.current.push(marker)
+
+      const photoHtml = dest.photo
+        ? '<img src="' + dest.photo + '" alt="' + dest.nom + '" style="width:100%;height:120px;object-fit:cover;border-radius:8px;margin-bottom:8px;"/>'
+        : ''
+
+      const popupHtml =
+        '<div style="font-family:system-ui,sans-serif;min-width:220px;max-width:260px;">' +
+        photoHtml +
+        '<div style="font-size:16px;font-weight:600;color:#0F172A;margin-bottom:4px;">' + dest.nom + '</div>' +
+        '<div style="font-size:12px;color:#64748B;margin-bottom:8px;">' + dest.region + '</div>' +
+        '<div style="display:flex;gap:8px;margin-bottom:10px;font-size:13px;">' +
+        '<span>' + meteoIcon(dest.meteo) + ' ' + (dest.meteo ? dest.meteo.temp + '°C' : '—') + '</span>' +
+        '<span style="color:#64748B;">' + (dest.meteo ? dest.meteo.pluie + 'mm' : '') + '</span>' +
+        '<span style="margin-left:auto;background:' + color + ';color:#fff;border-radius:6px;padding:2px 8px;font-weight:600;">' + score + '</span>' +
+        '</div>' +
+        '<div style="font-size:13px;color:#475569;margin-bottom:10px;">Total estimé : <strong style="color:#0F172A;">~' + dest.totalEstime + '€</strong></div>' +
+        '<div style="display:flex;gap:6px;">' +
+        '<a href="' + dest.meilleurTransport.lien + '" target="_blank" rel="noopener noreferrer" style="flex:1;background:#0EA5E9;color:#fff;text-align:center;padding:6px;border-radius:6px;text-decoration:none;font-size:12px;font-weight:600;">🚆 Transport</a>' +
+        '<a href="' + dest.bookingUrl + '" target="_blank" rel="noopener noreferrer" style="flex:1;background:#1E40AF;color:#fff;text-align:center;padding:6px;border-radius:6px;text-decoration:none;font-size:12px;font-weight:600;">🏨 Hôtel</a>' +
+        '</div>' +
+        '</div>'
+
+      marker.bindPopup(popupHtml, {
+        maxWidth: 280,
+        maxHeight: 380,
+        autoPan: true,
+        autoPanPadding: [20, 60],
+      })
+    })
+  }, [results])
+
+  if (loading) {
+    return (
+      <div className="w-full h-[500px] md:h-[600px] bg-slate-900 rounded-2xl border border-slate-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-3xl mb-3 animate-bounce">🌤️</div>
+          <p className="text-slate-400 text-sm">Recherche des meilleures destinations...</p>
         </div>
       </div>
+    )
+  }
 
-      {loading && (
-        <div className="absolute inset-0 z-[1000] bg-white/85 backdrop-blur-sm flex items-center justify-center rounded-2xl">
-          <div className="text-center">
-            <div className="text-4xl mb-3 animate-pulse">🗺️</div>
-            <p className="text-slate-800 font-medium">Chargement météo et prix…</p>
+  return (
+    <div className="relative w-full h-[500px] md:h-[600px] rounded-2xl overflow-hidden border border-slate-800">
+      <div ref={mapRef} className="w-full h-full" />
+
+      <button
+        onClick={() => setLegendOpen(!legendOpen)}
+        className="absolute bottom-3 right-3 z-[400] w-9 h-9 bg-white rounded-full shadow-lg flex items-center justify-center text-slate-700 font-bold text-lg hover:bg-slate-100 transition-colors"
+        aria-label="Afficher la légende"
+      >
+        {legendOpen ? '×' : 'i'}
+      </button>
+
+      {legendOpen && (
+        <div className="absolute bottom-14 right-3 z-[400] bg-white rounded-xl shadow-xl p-3 max-w-[260px] text-slate-800">
+          <p className="text-xs font-semibold mb-2 text-slate-600 uppercase tracking-wide">Score régional moyen</p>
+          <div className="space-y-1.5 text-sm">
+            <div className="flex items-center gap-2"><span className="inline-block w-4 h-4 rounded" style={{background:'#BBF7D0'}}></span> 80+ Excellent</div>
+            <div className="flex items-center gap-2"><span className="inline-block w-4 h-4 rounded" style={{background:'#D9F99D'}}></span> 70–79 Très bon</div>
+            <div className="flex items-center gap-2"><span className="inline-block w-4 h-4 rounded" style={{background:'#FEF08A'}}></span> 60–69 Bon</div>
+            <div className="flex items-center gap-2"><span className="inline-block w-4 h-4 rounded" style={{background:'#FED7AA'}}></span> 50–59 Correct</div>
+            <div className="flex items-center gap-2"><span className="inline-block w-4 h-4 rounded" style={{background:'#FCA5A5'}}></span> 40–49 Faible</div>
+            <div className="flex items-center gap-2"><span className="inline-block w-4 h-4 rounded" style={{background:'#F87171'}}></span> &lt; 40 Mauvais</div>
           </div>
+          <p className="text-xs text-slate-500 mt-3 pt-3 border-t border-slate-200">
+            Clique sur une région ou une ville pour les détails.
+          </p>
         </div>
       )}
-
-      {!loading && results.length === 0 && (
-        <div className="absolute inset-0 z-[500] flex items-center justify-center pointer-events-none">
-          <div className="text-center text-slate-600 bg-white/95 px-8 py-5 rounded-2xl border border-slate-200 shadow-lg">
-            <div className="text-3xl mb-2">🗺️</div>
-            <p className="font-medium mb-1">Lance une recherche</p>
-            <p className="text-sm">La carte des régions s&apos;affichera ici</p>
-          </div>
-        </div>
-      )}
-
-      <div ref={containerRef} className="w-full rounded-2xl border border-slate-200 shadow-sm" style={{ height: '650px' }} />
-
-      <style>{`
-        .light-popup .leaflet-popup-content-wrapper {
-          background: white !important;
-          color: #0F172A !important;
-          border-radius: 14px !important;
-          box-shadow: 0 12px 40px rgba(0,0,0,0.25) !important;
-          padding: 4px !important;
-        }
-        .light-popup .leaflet-popup-tip { background: white !important; }
-        .light-popup .leaflet-popup-close-button { color: #64748B !important; font-size: 20px !important; top: 8px !important; right: 10px !important; font-weight: 300 !important; }
-        .light-popup .leaflet-popup-content { margin: 14px 16px !important; }
-        .city-pill { background: transparent !important; border: none !important; }
-      `}</style>
     </div>
   )
 }
