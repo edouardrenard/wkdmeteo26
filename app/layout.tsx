@@ -2,11 +2,12 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import './globals.css'
 import CookieBanner from '@/components/CookieBanner'
- 
+import Analytics from '@/components/Analytics'
+
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'WeekendIdéal — Où partir selon la météo et ton budget',
+  title: 'WeekendSoleil — Où partir selon la météo et ton budget',
   description: 'Trouve ta destination de weekend idéale en fonction de la météo, du prix des trains, de la voiture et des hôtels.',
 }
 
@@ -16,6 +17,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className={inter.className}>
         {children}
         <CookieBanner />
+        <Analytics />
       </body>
     </html>
   )
