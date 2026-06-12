@@ -215,6 +215,14 @@ export default function MapView({ results, loading }: Props) {
   return (
     <div className="relative w-full">
       <div className={(legendOpen ? 'flex' : 'hidden') + ' md:flex flex-col absolute top-3 left-3 z-[1000] bg-white/95 backdrop-blur-sm border border-slate-200 rounded-xl p-3 text-xs shadow-lg max-w-[220px]'}>
+        <button
+          onClick={() => setLegendOpen(false)}
+          className="md:hidden absolute top-1 right-1 w-7 h-7 flex items-center justify-center text-slate-500 hover:text-slate-800 text-lg"
+          aria-label="Fermer la légende"
+        >
+          ×
+        </button>
+        
         <p className="font-semibold text-slate-800 mb-2">Score régional moyen</p>
         {[
           { color: '#15803D', label: '80+ Excellent' },
@@ -233,14 +241,18 @@ export default function MapView({ results, loading }: Props) {
           Clique sur une région pour les détails
         </div>
       </div>
-<button
-        onClick={() => setLegendOpen(!legendOpen)}
-        className="md:hidden absolute top-3 left-3 z-[1001] w-9 h-9 bg-white rounded-full shadow-lg flex items-center justify-center text-slate-700 font-bold text-base hover:bg-slate-100 transition-colors"
-        aria-label="Afficher la légende"
-        style={{ display: legendOpen ? 'none' : 'flex' }}
-      >
-        i
-      </button>
+
+      
+      {!legendOpen && (
+        <button
+          onClick={() => setLegendOpen(true)}
+          className="md:hidden absolute top-3 left-3 z-[1001] w-9 h-9 bg-white rounded-full shadow-lg flex items-center justify-center text-slate-700 font-bold text-base hover:bg-slate-100 transition-colors"
+          aria-label="Afficher la légende"
+        >
+          i
+        </button>
+      )}
+      
       
       {loading && (
         <div className="absolute inset-0 z-[1000] bg-white/85 backdrop-blur-sm flex items-center justify-center rounded-2xl">
