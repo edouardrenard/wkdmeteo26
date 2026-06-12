@@ -246,7 +246,7 @@ export default function MapView({ results, loading }: Props) {
       {!legendOpen && (
         <button
           onClick={() => setLegendOpen(true)}
-          className="md:hidden absolute top-3 left-3 z-[1001] w-9 h-9 bg-white rounded-full shadow-lg flex items-center justify-center text-slate-700 font-bold text-base hover:bg-slate-100 transition-colors"
+          className="md:hidden absolute top-3 right-3 z-[1001] w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center text-slate-700 font-bold text-base hover:bg-slate-100 transition-colors"
           aria-label="Afficher la légende"
         >
           i
