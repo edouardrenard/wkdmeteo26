@@ -214,7 +214,7 @@ export default function MapView({ results, loading }: Props) {
 
   return (
     <div className="relative w-full">
-      <div className={(legendOpen ? 'flex' : 'hidden') + ' md:flex flex-col absolute top-3 left-3 z-[1000] bg-white/95 backdrop-blur-sm border border-slate-200 rounded-xl p-3 text-xs shadow-lg max-w-[220px]'}>
+      <div className={(legendOpen ? 'flex' : 'hidden') + ' md:flex flex-col absolute md:bottom-3 md:left-3 md:right-auto md:top-auto top-3 right-3 z-[1000] bg-white/95 backdrop-blur-sm border border-slate-200 rounded-xl p-3 text-xs shadow-lg max-w-[220px]'}>
         <button
           onClick={() => setLegendOpen(false)}
           className="md:hidden absolute top-1 right-1 w-7 h-7 flex items-center justify-center text-slate-500 hover:text-slate-800 text-lg"
