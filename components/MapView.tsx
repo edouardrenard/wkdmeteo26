@@ -6,7 +6,7 @@ import { Destination } from '@/lib/types'
 interface Props {
   results: Destination[]
   loading: boolean
-}
+} 
 
 const GEOJSON_URL = 'https://raw.githubusercontent.com/gregoiredavid/france-geojson/master/regions.geojson'
 
