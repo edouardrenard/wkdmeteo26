@@ -194,9 +194,14 @@ export default function MapView({ results, loading }: Props) {
       layersRef.current.push(geoLayer)
 
       // Étiquettes pilules style OuiGo
+      const isMobile = window.innerWidth < 768
+      const pillPad = isMobile ? '2px 7px' : '4px 10px'
+      const pillFont = isMobile ? '9px' : '11px'
+      const pillScorePad = isMobile ? '0px 4px' : '1px 6px'
+      const pillScoreFont = isMobile ? '8px' : '10px'
       villesFR.forEach(d => {
         const labelColor = scoreToColor(d.scoreGlobal)
-        const labelHtml = '<div style="display:inline-flex;align-items:center;background:' + labelColor + ';color:white;padding:4px 10px;border-radius:14px;font-size:11px;font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.25);border:2px solid white;transform:translate(-50%,-50%)">' + d.nom + ' <span style="background:rgba(255,255,255,0.25);padding:1px 6px;border-radius:8px;margin-left:5px;font-size:10px">' + d.scoreGlobal + '</span></div>'
+        const labelHtml = '<div style="display:inline-flex;align-items:center;background:' + labelColor + ';color:white;padding:' + pillPad + ';border-radius:14px;font-size:' + pillFont + ';font-weight:700;white-space:nowrap;box-shadow:0 2px 6px rgba(0,0,0,0.25);border:2px solid white;transform:translate(-50%,-50%)">' + d.nom + ' <span style="background:rgba(255,255,255,0.25);padding:' + pillScorePad + ';border-radius:8px;margin-left:4px;font-size:' + pillScoreFont + '">' + d.scoreGlobal + '</span></div>'
         const labelIcon = Leaf.divIcon({
           className: 'city-pill',
           html: labelHtml,
